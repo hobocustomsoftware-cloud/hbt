@@ -9,9 +9,11 @@ import 'package:http/http.dart' as http;
 /// request is retried. If refresh fails, the caller receives an
 /// [ApiException] with the original 401 message.
 class ApiClient {
-  ApiClient({required this.baseUrl});
+  ApiClient({required this.baseUrl, http.Client? client})
+      : _clientOverride = client;
 
   final String baseUrl;
+  final http.Client? _clientOverride;
   String? accessToken;
 
   /// Callback to attempt token refresh (set by the auth controller).
@@ -65,9 +67,16 @@ class ApiClient {
     if (body != null) {
       request.body = jsonEncode(body);
     }
-    final streamed =
-        await request.send().timeout(const Duration(seconds: 15));
-    return http.Response.fromStream(streamed);
+    final client = _clientOverride ?? http.Client();
+    try {
+      final streamed =
+          await client.send(request).timeout(const Duration(seconds: 15));
+      return http.Response.fromStream(streamed);
+    } finally {
+      // Only close clients we created; injected clients are owned by the
+      // caller (tests reuse one instance across requests).
+      if (_clientOverride == null) client.close();
+    }
   }
 
   /// Attempt a token refresh, then retry the original request once.
