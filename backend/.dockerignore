@@ -1,0 +1,11 @@
+.env
+.venv
+.cache
+__pycache__
+*.py[cod]
+*.sqlite3
+*.bak
+media
+bandit-report.json
+pip-audit-report.json
+openapi-generation.log

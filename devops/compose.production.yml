@@ -1,0 +1,116 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ../backend
+    env_file:
+      - ../backend/.env.production
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      HBT_RUN_BOOTSTRAP: "true"
+    secrets:
+      - postgres_password
+    depends_on:
+      postgres:
+        condition: service_healthy
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/live/', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    read_only: true
+    tmpfs:
+      - /tmp
+    volumes:
+      - static_data:/app/staticfiles
+      - media_data:/app/media
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    stop_grace_period: 45s
+
+  push-worker:
+    build:
+      context: ../backend
+    command: ["sh", "-c", "while true; do python manage.py dispatch_push --limit 100; sleep 5; done"]
+    env_file:
+      - ../backend/.env.production
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    depends_on:
+      postgres:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  scheduler:
+    build:
+      context: ../backend
+    command: ["sh", "-c", "while true; do python manage.py process_subscription_deadlines; python manage.py process_booking_expiries; python manage.py reconcile_payment_intents; sleep 300; done"]
+    env_file:
+      - ../backend/.env.production
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    depends_on:
+      postgres:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.29-alpine
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/hbt.conf:/etc/nginx/conf.d/default.conf:ro
+      - static_data:/srv/static:ro
+      - media_data:/srv/media:ro
+      - ${TLS_CERT_PATH}:/etc/nginx/tls/fullchain.pem:ro
+      - ${TLS_KEY_PATH}:/etc/nginx/tls/privkey.pem:ro
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  static_data:
+  media_data:
+
+secrets:
+  postgres_password:
+    file: ${POSTGRES_PASSWORD_FILE}

@@ -1,0 +1,59 @@
+name: backend-ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test-security-schema:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: hbt_test
+          POSTGRES_USER: hbt
+          POSTGRES_PASSWORD: test-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U hbt -d hbt_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DJANGO_DEBUG: "false"
+      DJANGO_SECRET_KEY: ci-only-secret-key-that-is-longer-than-fifty-characters-123456
+      DJANGO_ALLOWED_HOSTS: localhost
+      DJANGO_DB_ENGINE: postgresql
+      POSTGRES_DB: hbt_test
+      POSTGRES_USER: hbt
+      POSTGRES_PASSWORD: test-only-password
+      POSTGRES_HOST: 127.0.0.1
+      POSTGRES_PORT: "5432"
+      NRC_ENCRYPTION_KEY: Kdfsfm3QKzgEO3FgmTKzhvJkw6V31pAt2yQ-ngGAYeQ=
+      NRC_BLIND_INDEX_KEY: ci-only-blind-index-key
+      PAYMENT_CREDENTIAL_ENCRYPTION_KEY: mxWeDMR7u-bSeXfGI39ohPAhcei6_HmEG8JEP8XVJmY=
+      PUSH_TOKEN_ENCRYPTION_KEY: PyF2sfkAYpRBevSMkDrIPbt3prRIyv9jruPNXrC2C9U=
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -r backend/requirements.txt -r backend/requirements-security.txt
+      - working-directory: backend
+        run: python manage.py makemigrations --check --dry-run
+      - working-directory: backend
+        run: python manage.py spectacular --file openapi.yaml --validate --fail-on-warn
+      - working-directory: backend
+        run: python manage.py test --noinput
+      - working-directory: backend
+        run: pip check
+      - working-directory: backend
+        run: pip-audit -r requirements.txt
+      - run: bandit -r backend/apps backend/config -c security/bandit.yaml
+      - run: semgrep --config security/.semgrep.yml backend/apps backend/config

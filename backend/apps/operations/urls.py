@@ -1,0 +1,43 @@
+from django.urls import path
+
+from .views import (
+    MonitoringAlertsView,
+    MonitoringDashboardView,
+    OwnerDashboardView,
+    ReportExportView,
+    PrintAcknowledgeView,
+    PrintDocumentListCreateView,
+    PrinterProfileListCreateView,
+    PrintTemplateListCreateView,
+    SettlementActionView,
+    SettlementCreateView,
+    SyncBootstrapView,
+    TripCloseView,
+)
+
+urlpatterns = [
+    path("organizations/<uuid:organization_id>/print-documents/",
+         PrintDocumentListCreateView.as_view()),
+    path("organizations/<uuid:organization_id>/printer-profiles/",
+         PrinterProfileListCreateView.as_view()),
+    path("organizations/<uuid:organization_id>/print-templates/",
+         PrintTemplateListCreateView.as_view()),
+    path("organizations/<uuid:organization_id>/print-documents/<uuid:document_id>/printed/",
+         PrintAcknowledgeView.as_view()),
+    path("organizations/<uuid:organization_id>/trips/<uuid:trip_id>/close/",
+         TripCloseView.as_view()),
+    path("organizations/<uuid:organization_id>/trips/<uuid:trip_id>/settlement/",
+         SettlementCreateView.as_view()),
+    path("organizations/<uuid:organization_id>/settlements/<uuid:settlement_id>/action/",
+         SettlementActionView.as_view()),
+    path("organizations/<uuid:organization_id>/reports/owner-dashboard/",
+         OwnerDashboardView.as_view()),
+    path("organizations/<uuid:organization_id>/monitoring/dashboard/",
+         MonitoringDashboardView.as_view()),
+    path("organizations/<uuid:organization_id>/monitoring/alerts/",
+         MonitoringAlertsView.as_view()),
+    path("organizations/<uuid:organization_id>/reports/export/",
+         ReportExportView.as_view()),
+    path("organizations/<uuid:organization_id>/sync/bootstrap/",
+         SyncBootstrapView.as_view()),
+]

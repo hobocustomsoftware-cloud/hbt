@@ -1,0 +1,6 @@
+-r requirements.txt
+bandit==1.9.4
+hypothesis==6.161.5
+pip-audit==2.10.1
+semgrep==1.171.0
+schemathesis==4.24.3

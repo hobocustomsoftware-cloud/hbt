@@ -1,0 +1,101 @@
+from django.urls import path
+
+from .views import (
+    BookingCancelView,
+    BookingConfirmView,
+    BookingDetailView,
+    BookingListCreateView,
+    CounterTripSeatAvailabilityView,
+    CorporateCustomerListCreateView,
+    CorporateInvoiceIssueView,
+    CorporateInvoiceListView,
+    CorporateInvoiceVoidView,
+    CorporateMemberCreateView,
+    MyCorporateApprovalListView,
+    MyCorporateCustomerListView,
+    PassengerSeatLockAcquireView,
+    PassengerSeatLockDetailView,
+    SeatLockAcquireView,
+    SeatLockDetailView,
+    SeatLockExtendView,
+    SeatLockListByTripView,
+    SelfCorporateBookingSubmitView,
+    SelfCorporateDecisionView,
+)
+
+urlpatterns = [
+    path(
+        "organizations/<uuid:organization_id>/trips/<uuid:trip_id>/seats/",
+        CounterTripSeatAvailabilityView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/seat-lock/",
+        SeatLockAcquireView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/seat-locks/",
+        SeatLockListByTripView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/seat-lock/<uuid:lock_id>/",
+        SeatLockDetailView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/seat-lock/<uuid:lock_id>/extend/",
+        SeatLockExtendView.as_view(),
+    ),
+    path("passenger/seat-locks/", PassengerSeatLockAcquireView.as_view()),
+    path(
+        "passenger/seat-locks/<uuid:lock_id>/",
+        PassengerSeatLockDetailView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/bookings/",
+        BookingListCreateView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/bookings/<uuid:booking_id>/",
+        BookingDetailView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/bookings/<uuid:booking_id>/confirm/",
+        BookingConfirmView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/bookings/<uuid:booking_id>/cancel/",
+        BookingCancelView.as_view(),
+    ),
+    path("passenger/corporate-memberships/", MyCorporateCustomerListView.as_view()),
+    path(
+        "passenger/bookings/<uuid:booking_id>/corporate-submit/",
+        SelfCorporateBookingSubmitView.as_view(),
+    ),
+    path("passenger/corporate-approvals/", MyCorporateApprovalListView.as_view()),
+    path(
+        "passenger/corporate-approvals/<uuid:approval_id>/decision/",
+        SelfCorporateDecisionView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/corporate-customers/",
+        CorporateCustomerListCreateView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/corporate-customers/"
+        "<uuid:customer_id>/members/",
+        CorporateMemberCreateView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/corporate-invoices/",
+        CorporateInvoiceListView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/corporate-approvals/"
+        "<uuid:approval_id>/invoice/",
+        CorporateInvoiceIssueView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/corporate-invoices/"
+        "<uuid:invoice_id>/void/",
+        CorporateInvoiceVoidView.as_view(),
+    ),
+]

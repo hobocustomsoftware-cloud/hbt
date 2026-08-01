@@ -1,0 +1,35 @@
+# HBT Backup Cron Schedule
+# Install: crontab devops/backup/crontab.example
+# 
+# Environment variables must be available to cron.
+# Either set them in the crontab itself or in /etc/environment.
+#
+# Required env vars:
+#   POSTGRES_HOST, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD
+#   HBT_BACKUP_DIR (default: /var/backups/hobosaas)
+#   HBT_S3_BUCKET (for cloud sync)
+#   HBT_S3_ENDPOINT (optional, for S3-compatible storage)
+#
+# To install:
+#   crontab -u hbt devops/backup/crontab.example
+
+# ──────────────────────────────────────────────
+# Daily full backup at 2:00 AM (server local time)
+# ──────────────────────────────────────────────
+0 2 * * * /opt/hbt/scripts/backup-postgres.sh >> /var/log/hbt/backup.log 2>&1
+
+# ──────────────────────────────────────────────
+# Sync backups to cloud at 3:00 AM (after backup completes)
+# ──────────────────────────────────────────────
+30 2 * * * /opt/hbt/devops/backup/backup-sync.sh >> /var/log/hbt/backup-sync.log 2>&1
+
+# ──────────────────────────────────────────────
+# Weekly backup verification (Sunday 4:00 AM)
+# Restores latest backup to temp DB and verifies
+# ──────────────────────────────────────────────
+0 4 * * 0 /opt/hbt/devops/backup/verify-backup.sh >> /var/log/hbt/backup-verify.log 2>&1
+
+# ──────────────────────────────────────────────
+# Monthly log rotation (1st of month, 5:00 AM)
+# ──────────────────────────────────────────────
+0 5 1 * * logrotate /opt/hbt/devops/logrotate.conf >> /var/log/hbt/logrotate.log 2>&1

@@ -1,0 +1,20 @@
+rules:
+  - id: hbt-no-raw-sql-string-format
+    languages: [python]
+    severity: ERROR
+    message: Raw SQL must use bound parameters; string formatting enables SQL injection.
+    patterns:
+      - pattern-either:
+          - pattern: $CURSOR.execute($SQL % ...)
+          - pattern: $CURSOR.execute($SQL.format(...))
+          - pattern: $CURSOR.execute(f"...")
+  - id: hbt-no-shell-true
+    languages: [python]
+    severity: ERROR
+    message: shell=True is prohibited in application code.
+    pattern: subprocess.$F(..., shell=True, ...)
+  - id: hbt-no-debug-toolbar-production
+    languages: [python]
+    severity: WARNING
+    message: Do not enable debug tooling unconditionally.
+    pattern: INSTALLED_APPS = [..., "debug_toolbar", ...]

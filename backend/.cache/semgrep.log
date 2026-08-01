@@ -1,0 +1,26 @@
+2026-07-26 20:47:57,413 - semgrep.rpc - ERROR - RPC subprocess exited with code 1
+2026-07-26 20:47:57,414 - semgrep.rule_lang - WARNING - semgrep-core rule validation failed (SemgrepError)
+2026-07-26 20:48:02,811 - semgrep.core_runner - ERROR - semgrep-core exited with 1!
+2026-07-26 20:48:03,661 - semgrep.output - ERROR - [ERROR] Error while running rules: 
+                    You are seeing this because the engine was killed.
+
+                    The most common reason this happens is because it used too much memory.
+                    If your repo is large (~10k files or more), you have three options:
+                    1. Increase the amount of memory available to semgrep
+                    2. Reduce the number of jobs semgrep runs with via `-j <jobs>`.
+                    3. Scan the repo in parts (contact us for help)
+
+                    Otherwise, it is likely that semgrep is hitting the limit on only some
+                    files. In this case, you can try to set the limit on the amount of memory
+                    semgrep can use on each file with `--max-memory <memory>`. We recommend
+                    lowering this to a limit 70% of the available memory. For CI runs with
+                    interfile analysis, the default max-memory is 5000MB. Without, the default
+                    is unlimited.
+
+                    If you have tried all these steps and still are seeing this error, please
+                    contact us.
+
+                       Error: semgrep-core exited with unexpected output
+
+                       
+                    

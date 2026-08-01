@@ -1,0 +1,72 @@
+from django.urls import path
+
+from .views import (
+    CargoAssignTripView,
+    CargoCategoryListCreateView,
+    CargoPricingRuleDetailView,
+    CargoPricingRuleListCreateView,
+    CargoAllocationPaidView,
+    CargoContactListCreateView,
+    CargoShipmentDetailView,
+    CargoShipmentListCreateView,
+    CargoTransitionView,
+    CargoQrResolveView,
+    CargoOwnerReportView,
+    RoadsideCargoAcceptView,
+    TripCargoManifestView,
+)
+
+urlpatterns = [
+    path(
+        "organizations/<uuid:organization_id>/cargo/pricing-rules/",
+        CargoPricingRuleListCreateView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/cargo/pricing-rules/<uuid:pk>/",
+        CargoPricingRuleDetailView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/reports/cargo/summary/",
+        CargoOwnerReportView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/cargo/qr/resolve/",
+        CargoQrResolveView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/trips/<uuid:trip_id>/cargo-manifest/",
+        TripCargoManifestView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/trips/<uuid:trip_id>/cargo/roadside/",
+        RoadsideCargoAcceptView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/cargo/categories/",
+        CargoCategoryListCreateView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/cargo/contacts/",
+        CargoContactListCreateView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/cargo/shipments/",
+        CargoShipmentListCreateView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/cargo/shipments/<uuid:shipment_id>/",
+        CargoShipmentDetailView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/cargo/shipments/<uuid:shipment_id>/assign-trip/",
+        CargoAssignTripView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/cargo/shipments/<uuid:shipment_id>/transition/",
+        CargoTransitionView.as_view(),
+    ),
+    path(
+        "organizations/<uuid:organization_id>/cargo/shipments/<uuid:shipment_id>/allocations/<uuid:charge_line_id>/paid/",
+        CargoAllocationPaidView.as_view(),
+    ),
+]

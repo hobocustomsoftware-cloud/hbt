@@ -1,0 +1,198 @@
+# HEOS Policy Definitions v1
+# Every policy is a machine-readable rule derived from ai/02 (Engineering Rules),
+# ai/05 (Definition of Done), ai/06 (Coding Standards), ai/07 (Security Standards).
+#
+# format_version: 1
+# policy:
+#   id: unique identifier
+#   severity: error | warning | info     (error blocks CI, warning advises, info reports)
+#   domain: structure | git | security | migration | documentation | config | dependencies
+#   source: which HEOS document defines this
+#   description: human-readable rule
+#   check: Python function name in checks/
+
+format_version: 1
+
+policies:
+  # ─── Structure ──────────────────────────────────────────────
+  - id: HBT-STRUCT-001
+    severity: error
+    domain: structure
+    source: ai/06-CODING_STANDARDS (section 10-11)
+    description: Project root MUST have backend/ directory
+    check: directory_exists
+    params: { path: "backend" }
+
+  - id: HBT-STRUCT-002
+    severity: error
+    domain: structure
+    source: ai/06-CODING_STANDARDS (section 10-11)
+    description: Project root MUST have docs/ directory
+    check: directory_exists
+    params: { path: "docs" }
+
+  - id: HBT-STRUCT-003
+    severity: error
+    domain: structure
+    source: ai/06-CODING_STANDARDS (section 10-11)
+    description: Project root MUST have docker/ or compose.yaml or Dockerfile
+    check: any_file_exists
+    params: { paths: ["compose.yaml", "docker-compose.yml", "Dockerfile", "docker/"] }
+
+  - id: HBT-STRUCT-004
+    severity: warning
+    domain: structure
+    source: ai/06-CODING_STANDARDS (section 10-11)
+    description: Project SHOULD have .env.example in backend/ or root
+    check: any_file_exists
+    params: { paths: [".env.example", "backend/.env.example"] }
+
+  - id: HBT-STRUCT-005
+    severity: error
+    domain: structure
+    source: ai/06-CODING_STANDARDS (section 22)
+    description: Project MUST have a requirements.txt or pyproject.toml
+    check: any_file_exists
+    params: { paths: ["requirements.txt", "pyproject.toml", "backend/requirements.txt"] }
+
+  # ─── Git ────────────────────────────────────────────────────
+  - id: HBT-GIT-001
+    severity: error
+    domain: git
+    source: ai/02-ENGINEERING_RULES (section 7-9)
+    description: Repository MUST have a .git directory
+    check: directory_exists
+    params: { path: ".git" }
+
+  - id: HBT-GIT-002
+    severity: warning
+    domain: git
+    source: ai/02-ENGINEERING_RULES (section 9)
+    description: "Latest commit message SHOULD follow conventional commits format (type: description)"
+    check: commit_convention
+    params: {}
+
+  - id: HBT-GIT-003
+    severity: warning
+    domain: git
+    source: ai/02-ENGINEERING_RULES (section 3)
+    description: Repository SHOULD have a README.md with meaningful content
+    check: file_not_empty
+    params: { path: "README.md" }
+
+  - id: HBT-GIT-004
+    severity: error
+    domain: git
+    source: ai/02-ENGINEERING_RULES (section 4)
+    description: Repository MUST have a .gitignore
+    check: file_exists
+    params: { path: ".gitignore" }
+
+  # ─── Security ────────────────────────────────────────────────
+  - id: HBT-SEC-001
+    severity: error
+    domain: security
+    source: ai/07-SECURITY_STANDARDS (section 13)
+    description: No .env files with secrets MUST be committed (in .gitignore)
+    check: gitignored
+    params: { patterns: [".env", ".env.local", "*.key", "*.pem"] }
+
+  - id: HBT-SEC-002
+    severity: error
+    domain: security
+    source: ai/07-SECURITY_STANDARDS (section 6)
+    description: No hardcoded passwords, tokens, or secrets in source files
+    check: no_secrets_in_source
+    params: { extensions: [".py", ".js", ".ts", ".yaml", ".yml", ".toml", ".cfg", ".sh"], exclude_dirs: [".venv", "node_modules", "migrations", "__pycache__"] }
+
+  - id: HBT-SEC-003
+    severity: error
+    domain: security
+    source: ai/07-SECURITY_STANDARDS (section 39)
+    description: DEBUG MUST be False in production settings
+    check: debug_disabled_in_settings
+    params: { settings_path: "config/settings.py" }
+
+  - id: HBT-SEC-004
+    severity: warning
+    domain: security
+    source: ai/07-SECURITY_STANDARDS (section 3)
+    description: Production SECRET_KEY MUST come from environment, not default
+    check: secret_key_from_env
+    params: { settings_path: "config/settings.py" }
+
+  # ─── Migrations ──────────────────────────────────────────────
+  - id: HBT-DB-001
+    severity: error
+    domain: migration
+    source: ai/06-CODING_STANDARDS (section 14)
+    description: Migration files MUST NOT produce un-applied migrations (makemigrations --check)
+    check: migrations_applied
+    params: { manage_py: "manage.py" }
+
+  - id: HBT-DB-002
+    severity: warning
+    domain: migration
+    source: ai/06-CODING_STANDARDS (section 14)
+    description: Migration files SHOULD have a rollback (reverse) operation
+    check: migration_has_rollback
+    params: { migrations_dir: "migrations" }
+
+  # ─── Documentation ───────────────────────────────────────────
+  - id: HBT-DOC-001
+    severity: warning
+    domain: documentation
+    source: ai/05-DEFINITION_OF_DONE (section 4)
+    description: Backend README SHOULD exist and be non-empty
+    check: file_not_empty
+    params: { path: "backend/README.md" }
+
+  - id: HBT-DOC-002
+    severity: info
+    domain: documentation
+    source: ai/05-DEFINITION_OF_DONE (section 4)
+    description: Project SHOULD have a CHANGELOG.md or RELEASE_NOTES.md
+    check: any_file_exists
+    params: { paths: ["CHANGELOG.md", "RELEASE_NOTES.md"] }
+
+  - id: HBT-DOC-003
+    severity: info
+    domain: documentation
+    source: ai/06-CODING_STANDARDS (section 10-11)
+    description: Workspace SHOULD have architecture/ directory with at least one doc
+    check: directory_not_empty
+    params: { path: "architecture" }
+
+  # ─── Configuration ───────────────────────────────────────────
+  - id: HBT-CFG-001
+    severity: warning
+    domain: config
+    source: ai/08-DEVOPS_STANDARDS (section 10)
+    description: CI configuration SHOULD exist (.github/workflows/ or .gitlab-ci.yml)
+    check: any_file_exists
+    params: { paths: [".github/workflows", ".gitlab-ci.yml", "Jenkinsfile"] }
+
+  - id: HBT-CFG-002
+    severity: info
+    domain: config
+    source: ai/06-CODING_STANDARDS (section 19)
+    description: Project SHOULD have editorconfig (.editorconfig)
+    check: file_exists
+    params: { path: ".editorconfig" }
+
+  # ─── Backend-Specific ────────────────────────────────────────
+  - id: HBT-PY-001
+    severity: error
+    domain: dependencies
+    source: ai/06-CODING_STANDARDS (section 18)
+    description: Python dependencies MUST be consistent (pip check passes)
+    check: pip_check
+    params: { requirements: "requirements.txt" }
+
+  - id: HBT-PY-002
+    severity: warning
+    domain: dependencies
+    source: ai/07-SECURITY_STANDARDS (section 37)
+    description: Dependencies SHOULD have no known vulnerabilities (pip-audit)
+    check: pip_audit
+    params: { requirements: "requirements.txt" }

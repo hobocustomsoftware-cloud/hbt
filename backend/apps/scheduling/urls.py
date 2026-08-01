@@ -1,0 +1,105 @@
+from django.urls import path
+
+from .views import (
+    ConductorAssignmentView,
+    BoardingStartView,
+    DriverAssignmentView,
+    GenerateTripView,
+    ScheduleDetailView,
+    ScheduleListCreateView,
+    TripAssignmentHistoryView,
+    TripArriveView,
+    TripDepartView,
+    TripDetailView,
+    TripEnRouteView,
+    TripListCreateView,
+    TripOperationalEventListView,
+    TripReadyView,
+    VehicleAssignmentView,
+    StopReachedView,
+)
+
+app_name = "scheduling"
+
+urlpatterns = [
+    path(
+        "organizations/<uuid:organization_id>/schedules/",
+        ScheduleListCreateView.as_view(),
+        name="schedule-list-create",
+    ),
+    path(
+        "organizations/<uuid:organization_id>/schedules/<uuid:schedule_id>/",
+        ScheduleDetailView.as_view(),
+        name="schedule-detail",
+    ),
+    path(
+        "organizations/<uuid:organization_id>/schedules/<uuid:schedule_id>/generate-trip/",
+        GenerateTripView.as_view(),
+        name="generate-trip",
+    ),
+    path(
+        "organizations/<uuid:organization_id>/trips/",
+        TripListCreateView.as_view(),
+        name="trip-list-create",
+    ),
+    path(
+        "organizations/<uuid:organization_id>/trips/<uuid:trip_id>/",
+        TripDetailView.as_view(),
+        name="trip-detail",
+    ),
+    path(
+        "organizations/<uuid:organization_id>/trips/<uuid:trip_id>/assign-vehicle/",
+        VehicleAssignmentView.as_view(),
+        name="assign-vehicle",
+    ),
+    path(
+        "organizations/<uuid:organization_id>/trips/<uuid:trip_id>/assign-driver/",
+        DriverAssignmentView.as_view(),
+        name="assign-driver",
+    ),
+    path(
+        "organizations/<uuid:organization_id>/trips/<uuid:trip_id>/assign-conductor/",
+        ConductorAssignmentView.as_view(),
+        name="assign-conductor",
+    ),
+    path(
+        "organizations/<uuid:organization_id>/trips/<uuid:trip_id>/assignment-history/",
+        TripAssignmentHistoryView.as_view(),
+        name="assignment-history",
+    ),
+    path(
+        "organizations/<uuid:organization_id>/trips/<uuid:trip_id>/ready/",
+        TripReadyView.as_view(),
+        name="trip-ready",
+    ),
+    path(
+        "organizations/<uuid:organization_id>/trips/<uuid:trip_id>/boarding/start/",
+        BoardingStartView.as_view(),
+        name="boarding-start",
+    ),
+    path(
+        "organizations/<uuid:organization_id>/trips/<uuid:trip_id>/depart/",
+        TripDepartView.as_view(),
+        name="trip-depart",
+    ),
+    path(
+        "organizations/<uuid:organization_id>/trips/<uuid:trip_id>/en-route/",
+        TripEnRouteView.as_view(),
+        name="trip-en-route",
+    ),
+    path(
+        "organizations/<uuid:organization_id>/trips/<uuid:trip_id>/stops/<uuid:stop_id>/reach/",
+        StopReachedView.as_view(),
+        name="stop-reached",
+    ),
+    path(
+        "organizations/<uuid:organization_id>/trips/<uuid:trip_id>/arrive/",
+        TripArriveView.as_view(),
+        name="trip-arrive",
+    ),
+    path(
+        "organizations/<uuid:organization_id>/trips/<uuid:trip_id>/operational-events/",
+        TripOperationalEventListView.as_view(),
+        name="operational-events",
+    ),
+]
