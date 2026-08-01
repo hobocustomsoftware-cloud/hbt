@@ -1,13 +1,14 @@
 from django.db.models import Q
 from rest_framework import generics, status
 from rest_framework.exceptions import NotFound
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
 
 from .models import Membership, Organization, Permission, Role
 from .serializers import (
+    CompanyOnboardingSerializer,
     MembershipRoleSerializer,
     MembershipSerializer,
     OrganizationContextSerializer,
@@ -178,3 +179,24 @@ class MembershipRoleAssignView(APIView):
             MembershipRoleSerializer(assignment).data,
             status=status.HTTP_201_CREATED,
         )
+
+class CompanyOnboardingView(APIView):
+    """Create a company (tenant + org + branding) with its first Owner account.
+
+    AllowAny: this is the first-run flow before any account exists.
+    """
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+    serializer_class = CompanyOnboardingSerializer
+
+    @extend_schema(
+        request=CompanyOnboardingSerializer,
+        responses={201: CompanyOnboardingSerializer},
+        operation_id="onboarding_company_create",
+    )
+    def post(self, request, version=None):
+        serializer = CompanyOnboardingSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        result = serializer.save()
+        return Response(result, status=status.HTTP_201_CREATED)
