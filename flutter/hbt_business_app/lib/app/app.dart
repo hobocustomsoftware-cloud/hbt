@@ -11,6 +11,8 @@ import '../infrastructure/database/app_database.dart';
 import '../infrastructure/offline/connectivity_monitor.dart';
 import '../infrastructure/offline/device_registry.dart';
 import '../infrastructure/offline/sync_manager.dart';
+import '../shared/services/idle_timeout_controller.dart';
+import '../shared/widgets/idle_lock_overlay.dart';
 
 /// Installs the app-wide friendly error widget. Called from [main] so the
 /// real app gets the boundary; tests that pump the widget directly are not
@@ -76,6 +78,7 @@ class _HbtBusinessAppState extends State<HbtBusinessApp> {
 
   late final DeviceRegistry _registry;
   late final ConnectivityMonitor _monitor;
+  late final IdleTimeoutController _idle;
   SyncManager? _syncManager;
 
   @override
@@ -83,6 +86,9 @@ class _HbtBusinessAppState extends State<HbtBusinessApp> {
     super.initState();
     _registry = DeviceRegistry(api: _session.api);
     _monitor = ConnectivityMonitor(baseUrl: AppConfig.apiBaseUrl);
+    _idle = IdleTimeoutController(
+      timeout: Duration(minutes: AppConfig.idleTimeoutMinutes),
+    );
     _session.addListener(_onSessionChanged);
     _bootstrapOffline();
     if (widget.restoreSession) {
@@ -141,6 +147,7 @@ class _HbtBusinessAppState extends State<HbtBusinessApp> {
   void dispose() {
     _session.removeListener(_onSessionChanged);
     _monitor.dispose();
+    _idle.dispose();
     _session.dispose();
     super.dispose();
   }
@@ -155,34 +162,45 @@ class _HbtBusinessAppState extends State<HbtBusinessApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff00695c)),
         useMaterial3: true,
       ),
-      builder: (context, child) {
-        // Offline banner across the whole app.
-        return Column(
-          children: [
-            AnimatedBuilder(
-              animation: _monitor,
-              builder: (context, _) => _monitor.isOnline
-                  ? const SizedBox.shrink()
-                  : Container(
-                      width: double.infinity,
-                      color: Colors.orange.shade800,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      child: const Text(
-                        'Offline — data may be out of date',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-            ),
-            Expanded(child: child!),
-          ],
-        );
-      },
+      builder: (context, child) => Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: (_) => _idle.registerActivity(),
+        onPointerMove: (_) => _idle.registerActivity(),
+        child: AnimatedBuilder(
+          animation: Listenable.merge([_monitor, _idle]),
+          builder: (context, _) => Stack(
+            children: [
+              // Offline banner across the whole app.
+              Column(
+                children: [
+                  AnimatedBuilder(
+                    animation: _monitor,
+                    builder: (context, _) => _monitor.isOnline
+                        ? const SizedBox.shrink()
+                        : Container(
+                            width: double.infinity,
+                            color: Colors.orange.shade800,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            child: const Text(
+                              'Offline — data may be out of date',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                  ),
+                  Expanded(child: child!),
+                ],
+              ),
+              if (_idle.locked) IdleLockOverlay(controller: _idle),
+            ],
+          ),
+        ),
+      ),
       home: _session.loading
           ? const _LoadingScreen()
           : _session.authenticated
@@ -195,6 +213,9 @@ class _HbtBusinessAppState extends State<HbtBusinessApp> {
           : SignInScreen(session: _session),
     ),
   );
+
+  /// The lock is a UX guard (unlock via the shared overlay's button);
+  /// tokens are not wiped.
 }
 
 class _LoadingScreen extends StatelessWidget {

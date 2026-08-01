@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'app/passenger_app.dart';
 import 'core/auth/auth_controller.dart';
+import 'shared/services/crash_reporter.dart';
 
 /// Entry point with a global error boundary.
 ///
@@ -20,6 +21,11 @@ Future<void> main() async {
 
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
+    CrashReporter.instance.recordError(
+      details.exception,
+      details.stack ?? StackTrace.current,
+      context: 'framework',
+    );
     debugPrint('HBT_PASSENGER unhandled framework error: '
         '${details.exception}');
   };
@@ -28,6 +34,7 @@ Future<void> main() async {
     final auth = AuthController();
     runApp(PassengerApp(auth: auth));
   }, (error, stack) {
+    CrashReporter.instance.recordError(error, stack, context: 'async');
     debugPrint('HBT_PASSENGER unhandled async error: $error\n$stack');
   });
 }

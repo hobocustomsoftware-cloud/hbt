@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'app/app.dart';
+import 'shared/services/crash_reporter.dart';
 
 export 'app/app.dart';
 
@@ -21,6 +22,11 @@ Future<void> main() async {
 
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
+    CrashReporter.instance.recordError(
+      details.exception,
+      details.stack ?? StackTrace.current,
+      context: 'framework',
+    );
     debugPrint('HBT_BUSINESS unhandled framework error: '
         '${details.exception}');
   };
@@ -28,6 +34,7 @@ Future<void> main() async {
   await runZonedGuarded(() async {
     HbtBusinessApp.start();
   }, (error, stack) {
+    CrashReporter.instance.recordError(error, stack, context: 'async');
     debugPrint('HBT_BUSINESS unhandled async error: $error\n$stack');
   });
 }

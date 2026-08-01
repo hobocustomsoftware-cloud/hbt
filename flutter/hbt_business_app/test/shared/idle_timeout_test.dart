@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:hbt_business_app/shared/services/idle_timeout_controller.dart';
