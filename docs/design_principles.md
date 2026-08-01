@@ -19,7 +19,8 @@ Optimize for:
 1. **Business simplicity** — a workflow confusing to a first-time owner must be
    redesigned, not documented.
 2. **Offline-first** — field roles (conductor/driver/gate) never stop working without
-   internet; queues sync when connectivity returns.
+   internet; queues sync when connectivity returns. **Offline is a normal operating
+   mode, not an emergency feature** (§16).
 3. **Cash integrity** — every cash node has an actor, a count, and a difference record;
    cash is sacred.
 4. **Fraud prevention** — system-generated numbers, audit trails, seat-lock conflicts,
@@ -27,6 +28,16 @@ Optimize for:
 5. **Speed of operation** — reduce clicks, typing, and training time. **Maximum 3 taps
    for common operations.**
 6. **Zero IT knowledge required** — the 55-year-old owner test (§8) gates every screen.
+7. **Decision-first dashboards** — a dashboard that only displays data is a failure;
+   every dashboard must help the user make a business decision (§12).
+8. **Workload test** — every feature must answer *"Will this reduce the workload of a
+   Myanmar transport company?"* If not, the feature should not exist (§13).
+9. **Full tenancy isolation** — one company can never see another company's data (§10).
+10. **Complete audit trail** — every financial action records Who/When/Where/Device/
+    Counter/Shift/Branch/Reason/Approval/History; **nothing financial is ever deleted,
+    only reversed** (§11).
+11. **Seasonality-aware** — Thingyan, public holidays, peak season, festival routes,
+    holiday pricing/capacity, special trips (§17).
 
 Never design generic CRUD. Every screen is justified by a real operational need.
 
@@ -230,3 +241,156 @@ Every screen ships with this test passed, in both Myanmar and English.
 
 Stored per-company; enforced in backend serializers/validators; surfaced in the
 setup wizard (Business / Cargo / Payment Settings steps).
+
+---
+
+## 12. Decision-first dashboards
+
+> Dashboards must never exist to display data. Every dashboard must help the user
+> make a business decision.
+
+Every dashboard section must answer one of:
+- **What do I do now?** (approvals, delayed/cancelled trips, cash differences,
+  expiring insurance/road-tax)
+- **How is money moving?** (revenue/expenses/net profit vs yesterday/week/month)
+- **Where should I act?** (worst branch, worst route, worst vehicle, staff ranking)
+- **Is anything broken?** (vehicle maintenance due, driver absent, deviation)
+
+Design test: for each dashboard widget, name the decision it supports and the action
+it leads to. A widget without an action is removed (research: actionable > vanity).
+
+---
+
+## 13. Workload test (acceptance gate #2)
+
+> Every feature must answer: **"Will this reduce the workload of a Myanmar transport
+> company?"** If not, the feature should not exist.
+
+Applied together with the 55-year-old test (§8): a feature must both be understandable
+without training AND reduce real workload. Features that only add process (e.g.,
+needless approval hops, redundant fields) are cut at design review.
+
+---
+
+## 14. Tenancy & isolation (absolute)
+
+One company must **NEVER** see another company's:
+`routes · passengers · bookings · vehicles · reports · staff · branding`
+
+Every company owns its own: logo · theme · ticket · receipt · website · settings ·
+users · branches · reports.
+
+Enforcement (backend):
+- Every model carries `organization`; every query filters by the resolved tenant
+  (org context from auth token / subdomain / slug) — never by client-supplied org id.
+- `OrganizationBranding` is per-tenant; brand assets are served only within tenant
+  scope.
+- Global search, reports, exports, and PDF generation are tenant-scoped.
+- Row-level tenant filter is unit-tested for every new model (contract test).
+
+Entity chain: `Company → Branch → Counter → Trip → Vehicle → Staff → Cash → Report`.
+
+---
+
+## 15. Lifecycle state machines
+
+Every operational object is a state machine. UI shows current state + allowed next
+states; backend validates transitions (no illegal jumps); every transition is
+recorded (who/when) for audit.
+
+### Vehicle
+`Registration → Seat Layout → Insurance → Road Tax → Inspection → Maintenance →
+Assignment → Trip → Repair → Retirement`
+
+### Employee
+`Hire → Assign Branch → Assign Role → Assign Vehicle → Attendance → Payroll →
+Performance → Leave → Resign`
+
+### Trip
+`Planned → Ready → Boarding → Departed → On Route → Arrived → Settlement → Closed`
+
+### Cargo
+`Accepted → Loaded → In Transit → Arrived → Delivered → Settlement → Closed`
+
+### Shift (counter)
+`Open Shift → Ticket → Cargo → Refund → Expense → Close Shift → Cash Verify →
+Approved`
+(Cash verify = count vs system; difference recorded, not hidden.)
+
+### Conductor settlement
+`Receive Trip → Offline → Settlement → Approved`
+
+---
+
+## 16. Offline as a normal operating mode
+
+Not an emergency feature. **Every workflow explicitly defines:**
+
+| Dimension | Definition per workflow |
+|---|---|
+| **Online** | Normal path, real-time sync, seat locks active |
+| **Offline** | What is recorded locally (tickets, cargo, boarding, settlement) with
+  full validation rules cached (routes, fares, seat layouts, vehicle/crew) |
+| **Reconnection** | Queued actions replay in order; seat conflicts detected and
+  surfaced per conflict policy |
+| **Conflict resolution** | Explicit rule per object (e.g., same seat sold twice →
+  second is refunded automatically + alert; cash difference at settlement → recorded
+  with actor and reason) |
+| **User experience** | Offline banner (already built), local confirmation with
+  provisional number, queue status, no data loss, no double-entry |
+| **Support** | Field roles can always call/see what synced vs pending; admins can
+  inspect a device's queue |
+
+Existing building blocks: `ConnectivityMonitor`, offline cache, queue — extended to
+conductor/gate workflows.
+
+---
+
+## 17. Seasonality
+
+Myanmar transport demand is seasonal. Platform supports:
+- **Thingyan** (water festival) — route/capacity surge, price ceilings
+- **Public holidays** — special schedules
+- **Peak season** — holiday pricing and holiday capacity per route/date
+- **Festival routes** — temporary routes with own fares/schedules
+- **Special trips** — one-off trips (vehicle + crew + route + date) with full
+  ticketing/cargo support
+
+Seasonality is configurable per company (dates, routes affected, multipliers),
+visible in the Owner dashboard as planning signals (capacity vs demand).
+
+---
+
+## 18. Global search
+
+One search field (top bar, ⌘K on desktop) searches **across the whole company** (tenant
+scoped):
+
+`Passenger · Phone · NRC · Ticket · Booking · Cargo · Vehicle · Employee · Route ·
+Trip · Receipt`
+
+Each result type opens its record (or a filtered list). Search also supports quick
+actions ("New Trip", "Approve 7"). Never searches across tenants.
+
+---
+
+## 19. Implementation order (approved phases)
+
+```
+1. Design System
+2. Company Setup Wizard
+3. Branding Engine
+4. Owner Dashboard
+5. Role Navigation
+6. Users & Roles
+7. Branch Management
+8. Vehicle & Seat Designer
+9. Route Wizard
+10. Counter
+11. Conductor
+12. Passenger
+```
+
+Each phase follows the validation loop (§10: run apps → walk journeys → screenshots →
+compare → fix until P0=0, P1=0, P2≤3) and commits separately under the remediation
+rules (AGENTS.md).

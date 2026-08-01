@@ -92,16 +92,27 @@ state is partly an artifact of a broken request, not an accurate empty state.
 
 ## 5. Implementation order (when approved)
 
-Per `docs/hbt_dashboard_design.md` §9 gate (**0 P0, 0 P1, ≤3 P2 per screen** after
-adoption walkthrough):
+Per `docs/design_principles.md` §19 (12 phases) and `docs/hbt_dashboard_design.md` §9
+validation gate (**0 P0, 0 P1, ≤3 P2 per screen** after adoption walkthrough):
 
-1. **Adopt the design system** (HbtTheme #AA0000/#151515 + HbtAdaptiveScaffold) in the
-   real app shell — the foundation already validated at all breakpoints.
-2. **Owner Dashboard (O-1)** — 13 KPI cards + 3 charts + rank panels + vehicle/driver
-   status + activity + alerts; wire to aggregation endpoints (new backend endpoints
-   required for most KPIs).
-3. **Role-based navigation** — permission → menu config; hidden not disabled.
-4. **Users & Roles admin (O-11)** and **Approvals (O-12)**.
-5. **Fix runtime P1s**: org-slug resolution, refresh endpoint, device registration.
-6. Re-walk the full Owner journey (browser, all breakpoints) → update this document
-   with post-fix scores. Target: Home ≥ 90.
+1. **Design System** — adopt HbtTheme (#AA0000/#151515) + HbtAdaptiveScaffold in the
+   real app shell (foundation already validated at all breakpoints).
+2. **Company Setup Wizard** — 17-step flow per charter §3 (Company→…→Branding→Finish).
+3. **Branding Engine** — OrganizationBranding → theme/tickets/receipts/PDF/websites.
+4. **Owner Dashboard** — zones A–H (18 KPI cards + charts + rankings + P&L + exports);
+   new backend aggregation endpoints required for most KPIs.
+5. **Role Navigation** — permission → menu config; hidden not disabled; 12 role homes.
+6. **Users & Roles** — user list + role/permission matrix (Owner-only).
+7. **Branch Management** — branches/terminals/counters; tenant chain.
+8. **Vehicle & Seat Designer** — vehicle lifecycle + seat layout designer.
+9. **Route Wizard** — route→stops→boarding/drop-off→fare→schedule→crew→calendar.
+10. **Counter** — Shift Dashboard; sell ≤3 taps; cargo; online-booking approval;
+    printer; cash verify; refund*; shift lifecycle.
+11. **Conductor** — Assigned Trip Dashboard; offline queue; boarding; QR; settlement.
+12. **Passenger** — search→book→pay→QR→history; branding from operator.
+
+**Runtime P1 fixes folded into phases 1–5:** org-slug resolution (`organizations//`
+400s), `auth/refresh/` 404, `me/devices/` 400.
+
+Each phase: walk every journey (browser, all breakpoints) → screenshots → update this
+document with post-fix scores. Target: Home ≥ 90.

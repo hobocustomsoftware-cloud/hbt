@@ -16,7 +16,12 @@
 Answer: **today's money truth, what is broken, and what needs my approval.**
 Nothing else may compete for the first five seconds. Everything else is one click away.
 
-The 5-second test is the acceptance gate for every dashboard screen (research §2.3).
+**Decision-first rule** (charter §12): every dashboard widget must support a business
+decision and lead to an action. A widget without an action is removed. Dashboards
+never exist merely to display data.
+
+The 5-second test is the acceptance gate for every dashboard screen (research §2.3),
+alongside the 55-year-old test and the workload test (charter §8, §13).
 
 ---
 
@@ -87,7 +92,9 @@ Export (PDF/Excel) available on every KPI group and the whole dashboard.
 ```
 
 **Layout rules (desktop):**
-- Top bar: brand · global search (entities + actions, ⌘K) · notifications bell (badge) ·
+- Top bar: brand · **global search** (one field: Passenger, Phone, NRC, Ticket,
+  Booking, Cargo, Vehicle, Employee, Route, Trip, Receipt + quick actions, ⌘K;
+  tenant-scoped — charter §18) · notifications bell (badge) ·
   branch switcher · profile.
 - Sidebar 248px, collapsible to 72px icons; 4 groups: **Operate** (Dashboard, Trips,
   Ticket, Cargo), **Manage** (Fleet, Finance, HR), **Insight** (Reports), **Admin**
@@ -313,6 +320,7 @@ Per `docs/dashboard_gap_analysis.md` after implementation walkthrough:
 No screen ships until its mandatory facts, actions, reports, navigation, and charts
 are present per the matrix above.
 
-**Every screen must also pass the 55-year-old test** (`docs/design_principles.md` §8):
-if a first-time Myanmar bus owner cannot use it without training, the workflow is
-redesigned before code is written.
+**Every screen must also pass the 55-year-old test and the workload test**
+(`docs/design_principles.md` §8, §13): understandable without training AND proven to
+reduce the company's workload — otherwise the workflow is redesigned before code is
+written.
