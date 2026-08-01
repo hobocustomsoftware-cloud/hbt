@@ -3,6 +3,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../config/app_config.dart';
 import '../network/api_client.dart';
+import '../../shared/repositories/booking_repository.dart';
+import '../../shared/repositories/ticket_repository.dart';
+import '../../shared/repositories/trip_repository.dart';
 
 /// Manages authentication state for the passenger app.
 ///
@@ -14,6 +17,14 @@ class AuthController extends ChangeNotifier {
   }
 
   final ApiClient api;
+
+  /// Repositories built on the authenticated [api] client.
+  ///
+  /// Lazily created once; screens receive them via [AuthController] so no DI
+  /// framework is needed (see M4 migration note).
+  late final TripRepository tripRepository = TripRepository(api: api);
+  late final BookingRepository bookingRepository = BookingRepository(api: api);
+  late final TicketRepository ticketRepository = TicketRepository(api: api);
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 

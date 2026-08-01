@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/auth/auth_controller.dart';
-import '../../../core/network/api_client.dart';
 import '../../../core/widgets/async_state.dart';
 import '../../../core/widgets/async_views.dart';
 import '../../../core/widgets/app_button.dart';
@@ -48,19 +47,18 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
     try {
       // Fetch the full trip detail
       final tripId = widget.trip['id']?.toString() ?? '';
-      final data = await widget.auth.api.get(
-        '/passenger/trips/$tripId/',
-      );
-      final stops = _extractStops(data);
-      if (mounted) {
-        setState(() {
-          _fullTrip = data;
-          _stops = stops;
-          _state.doneLoading();
-        });
+      final result = await widget.auth.tripRepository.tripDetail(tripId);
+      if (!mounted) return;
+      if (result.isErr) {
+        setState(() => _state.fail(result.errorMessage!));
+        return;
       }
-    } on ApiException catch (e) {
-      if (mounted) setState(() => _state.fail(e.message));
+      final detail = result.valueOrNull!;
+      setState(() {
+        _fullTrip = detail.raw;
+        _stops = _extractStops(detail.raw);
+        _state.doneLoading();
+      });
     } catch (e) {
       if (mounted) setState(() => _state.fail('Failed to load trip: $e'));
     }

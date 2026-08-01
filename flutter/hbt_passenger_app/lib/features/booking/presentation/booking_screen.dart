@@ -64,17 +64,6 @@ class _BookingScreenState extends State<BookingScreen> {
     super.dispose();
   }
 
-  List<Map<String, dynamic>> _extractMaps(dynamic response) {
-    final rawList = response is List<dynamic>
-        ? response
-        : (response['results'] as List<dynamic>?) ?? <dynamic>[];
-    final out = <Map<String, dynamic>>[];
-    for (final item in rawList) {
-      if (item is Map<String, dynamic>) out.add(item);
-    }
-    return out;
-  }
-
   Future<void> _loadInitialData() async {
     _state.startLoading();
     await Future.wait([_loadSeats(), _loadTravelers()]);
@@ -82,35 +71,31 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Future<void> _loadTravelers() async {
-    try {
-      final data = await widget.auth.api.get('/passenger/travelers/');
-      if (mounted) setState(() => _travelers = _extractMaps(data));
-    } catch (_) {
-      // Travelers are optional
+    final result = await widget.auth.bookingRepository.travelers();
+    if (!mounted) return;
+    if (result.isOk) {
+      setState(() => _travelers = result.valueOrNull);
     }
+    // Travelers are optional — errors are ignored (same as before).
   }
 
   Future<void> _loadSeats() async {
     if (widget.pickupStopId == null || widget.dropoffStopId == null) return;
 
-    try {
-      final data = await widget.auth.api.get(
-        '/passenger/trips/${widget.trip['id']}/seats/'
-        '?pickup_stop=${widget.pickupStopId}'
-        '&dropoff_stop=${widget.dropoffStopId}',
-      );
-      final rawSeats = data['seats'] is List
-          ? (data['seats'] as List<dynamic>)
-          : <dynamic>[];
-      final seatList = <Map<String, dynamic>>[];
-      for (final item in rawSeats) {
-        if (item is Map<String, dynamic>) seatList.add(item);
-      }
-      if (mounted) setState(() => _seats = seatList);
-    } on ApiException catch (e) {
-      if (mounted) _state.fail(e.message);
-    } catch (e) {
-      if (mounted) _state.fail('Failed to load seats: $e');
+    final result = await widget.auth.tripRepository.seats(
+      tripId: widget.trip['id']?.toString() ?? '',
+      pickupStopId: widget.pickupStopId,
+      dropoffStopId: widget.dropoffStopId,
+    );
+    if (!mounted) return;
+    if (result.isOk) {
+      setState(() {
+        _seats = result.valueOrNull!
+            .map((s) => s.raw)
+            .toList(growable: false);
+      });
+    } else {
+      _state.fail(result.errorMessage!);
     }
   }
 
@@ -146,12 +131,19 @@ class _BookingScreenState extends State<BookingScreen> {
     }
 
     try {
-      final lock = await widget.auth.api.post('/passenger/seat-locks/', {
+      final lockResult = await widget.auth.bookingRepository.acquireLock({
         'trip_id': widget.trip['id'],
         'seat_position': identifier,
         'idempotency_key': _lockIdempotencyKey(identifier),
       });
       if (!mounted) return;
+      if (lockResult.isErr) {
+        // Conflict (seat taken between refresh and tap) or network error.
+        setState(() => _state.fail(lockResult.errorMessage!));
+        _loadSeats(); // refresh availability so the user sees the real state
+        return;
+      }
+      final lock = lockResult.valueOrNull!;
       setState(() {
         _selectedSeatId = seatId;
         _lockId = lock['id']?.toString();
@@ -161,7 +153,6 @@ class _BookingScreenState extends State<BookingScreen> {
       _startLockTimer();
       _state.error = null;
     } on ApiException catch (e) {
-      // Conflict (seat taken between refresh and tap) or network error.
       if (mounted) {
         setState(() => _state.fail(e.message));
       }
@@ -174,11 +165,7 @@ class _BookingScreenState extends State<BookingScreen> {
     _lockTimer?.cancel();
     final lockId = _lockId;
     if (lockId != null) {
-      try {
-        await widget.auth.api.delete('/passenger/seat-locks/$lockId/');
-      } catch (_) {
-        // Best-effort: TTL will expire the hold server-side.
-      }
+      await widget.auth.bookingRepository.releaseLock(lockId);
     }
     if (mounted) {
       setState(() {
@@ -249,43 +236,47 @@ class _BookingScreenState extends State<BookingScreen> {
         final phone = user?['phone_number']?.toString() ?? '';
         final firstName = user?['first_name']?.toString() ?? '';
         final lastName = user?['last_name']?.toString() ?? '';
-        final newTraveler = await widget.auth.api.post(
-          '/passenger/travelers/',
-          {
-            'passenger_code': phone.isNotEmpty
-                ? phone
-                : 'T${DateTime.now().millisecondsSinceEpoch}',
-            'full_name': '$firstName $lastName'.trim(),
-            'phone_number': phone,
-            'organization': widget.trip['organization'],
-          },
-        );
-        passengerId = newTraveler['id'].toString();
-      }
-
-      final booking = await widget.auth.api.post(
-        '/passenger/bookings/',
-        {
-          'trip': widget.trip['id'],
-          'passenger_seats': [
-            {
-              'passenger': passengerId,
-              'seat_position': _selectedSeatId,
-            },
-          ],
-        },
-      );
-
-      if (mounted) {
-        _lockTimer?.cancel();
-        setState(() {
-          _result = booking;
-          _lockId = null;
-          _lockSeatIdentifier = null;
-          _lockExpiresAt = null;
-          _state.doneAction();
+        final travelerResult = await widget.auth.bookingRepository
+            .createTraveler({
+          'passenger_code': phone.isNotEmpty
+              ? phone
+              : 'T${DateTime.now().millisecondsSinceEpoch}',
+          'full_name': '$firstName $lastName'.trim(),
+          'phone_number': phone,
+          'organization': widget.trip['organization'],
         });
+        if (travelerResult.isErr) {
+          if (mounted) _state.fail(travelerResult.errorMessage!);
+          return;
+        }
+        passengerId = travelerResult.valueOrNull!['id'].toString();
       }
+
+      final bookingResult = await widget.auth.bookingRepository.createBooking({
+        'trip': widget.trip['id'],
+        'passenger_seats': [
+          {
+            'passenger': passengerId,
+            'seat_position': _selectedSeatId,
+          },
+        ],
+      });
+      if (!mounted) return;
+      if (bookingResult.isErr) {
+        setState(() => _state.fail(bookingResult.errorMessage!));
+        _loadSeats(); // a conflict may have happened; refresh the grid
+        return;
+      }
+
+      final booking = bookingResult.valueOrNull!.raw;
+      _lockTimer?.cancel();
+      setState(() {
+        _result = booking;
+        _lockId = null;
+        _lockSeatIdentifier = null;
+        _lockExpiresAt = null;
+        _state.doneAction();
+      });
     } on ApiException catch (e) {
       if (mounted) _state.fail(e.message);
       _loadSeats(); // a conflict may have happened; refresh the grid

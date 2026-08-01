@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/auth/auth_controller.dart';
-import '../../../core/network/api_client.dart';
 import '../../../core/widgets/async_state.dart';
 import '../../../core/widgets/async_views.dart';
 import '../../../core/widgets/status_chip.dart';
@@ -30,39 +29,18 @@ class _TicketListScreenState extends State<TicketListScreen> {
 
   Future<void> _loadTickets() async {
     _state.startLoading();
-    try {
-      final data = await widget.auth.api.get('/passenger/tickets/');
-      final list = _extractTicketList(data);
-      if (mounted) {
-        setState(() {
-          _tickets = list;
-          _state.doneLoading();
-        });
-      }
-    } on ApiException catch (e) {
-      if (mounted) setState(() => _state.fail(e.message));
-    } catch (e) {
-      if (mounted) setState(() => _state.fail('Failed to load tickets: $e'));
+    final result = await widget.auth.ticketRepository.myTickets();
+    if (!mounted) return;
+    if (result.isOk) {
+      setState(() {
+        _tickets = result.valueOrNull!
+            .map((t) => t.raw)
+            .toList(growable: false);
+        _state.doneLoading();
+      });
+    } else {
+      setState(() => _state.fail(result.errorMessage!));
     }
-  }
-
-  /// Safely extract a `List<Map<String, dynamic>>` from the API response,
-  /// handling both `{'results': [...]}` and bare-array responses.
-  List<Map<String, dynamic>> _extractTicketList(Map<String, dynamic> data) {
-    final rawList = data['results'];
-    if (rawList is List) {
-      final out = <Map<String, dynamic>>[];
-      for (final item in rawList) {
-        if (item is Map<String, dynamic>) out.add(item);
-      }
-      return out;
-    }
-    // Fallback: iterate values and collect only Map entries
-    final out = <Map<String, dynamic>>[];
-    for (final value in data.values) {
-      if (value is Map<String, dynamic>) out.add(value);
-    }
-    return out;
   }
 
   @override

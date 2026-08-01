@@ -45,16 +45,6 @@ class _TripSearchScreenState extends State<TripSearchScreen> {
     _loadTerminals();
   }
 
-  /// Safely extract a `List<dynamic>` from a dynamic API response.
-  List<dynamic> _extractList(dynamic response) {
-    if (response is List<dynamic>) return response;
-    if (response is Map<String, dynamic>) {
-      final results = response['results'];
-      if (results is List<dynamic>) return results;
-    }
-    return <dynamic>[];
-  }
-
   /// Safely convert a `List<dynamic>` to a list of `Map<String, dynamic>`.
   List<Map<String, dynamic>> _toMapList(List<dynamic> list) {
     final out = <Map<String, dynamic>>[];
@@ -67,17 +57,15 @@ class _TripSearchScreenState extends State<TripSearchScreen> {
   // ---- Terminal loading --------------------------------------------------
   Future<void> _loadTerminals() async {
     _state.startLoading();
-    try {
-      final data = await widget.auth.api.get('/terminals/');
-      final list = _toMapList(_extractList(data));
+    final result = await widget.auth.tripRepository.terminals();
+    if (!mounted) return;
+    if (result.isOk) {
       setState(() {
-        _terminals = list;
+        _terminals = result.valueOrNull;
         _state.doneLoading();
       });
-    } on ApiException catch (e) {
-      setState(() => _state.fail(e.message));
-    } catch (e) {
-      setState(() => _state.fail('Failed to load terminals: $e'));
+    } else {
+      setState(() => _state.fail(result.errorMessage!));
     }
   }
 
@@ -99,8 +87,16 @@ class _TripSearchScreenState extends State<TripSearchScreen> {
 
     try {
       final matchedRoutes = <Map<String, dynamic>>[];
-      final orgData = await widget.auth.api.get('/me/organizations/');
-      final orgs = _toMapList(_extractList(orgData));
+      final orgResult = await widget.auth.tripRepository.organizations();
+      if (!mounted) return;
+      if (orgResult.isErr) {
+        setState(() {
+          _state.fail('Route search failed: ${orgResult.errorMessage}');
+          _loadingRoutes = false;
+        });
+        return;
+      }
+      final orgs = orgResult.valueOrNull ?? <Map<String, dynamic>>[];
 
       // Phase 1: Fetch all routes for all orgs in parallel.
       final orgRouteFutures = <Future<List<Map<String, dynamic>>>>[];
@@ -109,7 +105,7 @@ class _TripSearchScreenState extends State<TripSearchScreen> {
         final orgId = org['id']?.toString();
         if (orgId == null) continue;
         orgIds.add(orgId);
-        orgRouteFutures.add(_fetchOrgRoutes(orgId));
+        orgRouteFutures.add(widget.auth.tripRepository.orgRoutes(orgId));
       }
 
       final allOrgRoutes = await Future.wait(orgRouteFutures);
@@ -122,7 +118,9 @@ class _TripSearchScreenState extends State<TripSearchScreen> {
           final routeId = route['id']?.toString();
           if (routeId == null) continue;
           routeIndex[routeId] = route;
-          stopFutures.add(_fetchRouteStops(orgIds[oi], routeId));
+          stopFutures.add(
+            widget.auth.tripRepository.routeStops(orgIds[oi], routeId),
+          );
         }
       }
 
@@ -171,27 +169,6 @@ class _TripSearchScreenState extends State<TripSearchScreen> {
     }
   }
 
-  Future<List<Map<String, dynamic>>> _fetchOrgRoutes(String orgId) async {
-    try {
-      final data = await widget.auth.api.get('/organizations/$orgId/routes/');
-      return _toMapList(_extractList(data));
-    } on ApiException {
-      return [];
-    }
-  }
-
-  Future<List<Map<String, dynamic>>> _fetchRouteStops(
-      String orgId, String routeId) async {
-    try {
-      final data = await widget.auth.api.get(
-        '/organizations/$orgId/routes/$routeId/stops/',
-      );
-      return _toMapList(_extractList(data));
-    } on ApiException {
-      return [];
-    }
-  }
-
   // ---- Trip search -------------------------------------------------------
   Future<void> _searchTrips() async {
     if (_pickupStopId == null || _dropoffStopId == null) return;
@@ -205,27 +182,32 @@ class _TripSearchScreenState extends State<TripSearchScreen> {
     try {
       final dateStr =
           '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}';
-      final data = await widget.auth.api.get(
-        '/passenger/trips/search/'
-        '?pickup_stop=$_pickupStopId'
-        '&dropoff_stop=$_dropoffStopId'
-        '&date=$dateStr',
+      final result = await widget.auth.tripRepository.searchTrips(
+        pickupStopId: _pickupStopId!,
+        dropoffStopId: _dropoffStopId!,
+        date: dateStr,
       );
-      final list = _toMapList(_extractList(data));
-      setState(() {
-        _trips = list;
-        _searching = false;
-      });
-    } on ApiException catch (e) {
-      setState(() {
-        _state.fail(e.message);
-        _searching = false;
-      });
+      if (!mounted) return;
+      if (result.isOk) {
+        setState(() {
+          _trips = result.valueOrNull!
+              .map((t) => t.raw)
+              .toList(growable: false);
+          _searching = false;
+        });
+      } else {
+        setState(() {
+          _state.fail(result.errorMessage!);
+          _searching = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _state.fail('Search failed: $e');
-        _searching = false;
-      });
+      if (mounted) {
+        setState(() {
+          _state.fail('Search failed: $e');
+          _searching = false;
+        });
+      }
     }
   }
 
