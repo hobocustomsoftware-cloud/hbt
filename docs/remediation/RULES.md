@@ -12,6 +12,8 @@ milestone work and are non-negotiable.
 7. **If a prerequisite is missing, implement the prerequisite first.**
 8. **Never refactor code only for style while critical production issues remain.**
 9. **After each milestone, run all tests and verify that no existing functionality is broken.**
+10. **End every milestone with a report containing exactly:** Completed Issues · Remaining Issues ·
+    Files Changed · Breaking Changes · Migration Required · New Tests Added · Production Readiness Score.
 
 ## How this maps to the roadmap
 
