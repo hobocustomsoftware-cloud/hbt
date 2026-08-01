@@ -10,63 +10,92 @@ import 'result.dart';
 /// cached and network failures fall back to the cache (marked `stale`),
 /// giving offline read capability for schedule data.
 class TripRepository {
-  TripRepository({required ApiClient api, AppCacheDatabase? cache})
-      : _api = api,
-        _cache = cache;
+  TripRepository({
+    required ApiClient api,
+    AppCacheDatabase? cache,
+    Duration discoveryTtl = const Duration(hours: 24),
+  })  : _api = api,
+        _cache = cache,
+        _discoveryTtl = discoveryTtl;
 
   final ApiClient _api;
   final AppCacheDatabase? _cache;
 
-  /// All terminals (pickup/dropoff cities).
+  /// Reference data (terminals, orgs, routes, stops) changes rarely; cache
+  /// it for a day so repeat searches skip the ~30-call discovery fan-out
+  /// (F-26 N+1 fix). Stale fallback still applies on network failure.
+  /// Injectable for tests.
+  final Duration _discoveryTtl;
+
+  /// All terminals (pickup/dropoff cities). Cached for [_discoveryTtl].
   Future<Result<List<Map<String, dynamic>>>> terminals() async {
+    const path = '/terminals/';
+    final cached = await _freshDiscovery(path);
+    if (cached != null) return Ok(extractMapList(cached));
     try {
-      final data = await _api.get('/terminals/');
+      final data = await _api.get(path);
+      await _cache?.put(path, data);
       return Ok(extractMapList(data));
     } on ApiException catch (e) {
-      return Err(e.message);
+      return _staleDiscoveryOrErr(path, e.message);
     } catch (e) {
       return Err('Failed to load terminals: $e');
     }
   }
 
   /// Organizations the passenger belongs to (drives route discovery).
+  /// Cached for [_discoveryTtl].
   Future<Result<List<Map<String, dynamic>>>> organizations() async {
+    const path = '/me/organizations/';
+    final cached = await _freshDiscovery(path);
+    if (cached != null) return Ok(extractMapList(cached));
     try {
-      final data = await _api.get('/me/organizations/');
+      final data = await _api.get(path);
+      await _cache?.put(path, data);
       return Ok(extractMapList(data));
     } on ApiException catch (e) {
-      return Err(e.message);
+      return _staleDiscoveryOrErr(path, e.message);
     } catch (e) {
       return Err('Failed to load organizations: $e');
     }
   }
 
   /// Routes for one organization. Failures return an empty list so a single
-  /// broken org cannot break the whole search (matches screen behaviour).
+  /// broken org cannot break the whole search (matches screen behaviour); a
+  /// stale cache is preferred over an empty list. Cached for [_discoveryTtl].
   Future<List<Map<String, dynamic>>> orgRoutes(String orgId) async {
+    final path = '/organizations/$orgId/routes/';
+    final cached = await _freshDiscovery(path);
+    if (cached != null) return extractMapList(cached);
     try {
-      final data = await _api.get('/organizations/$orgId/routes/');
+      final data = await _api.get(path);
+      await _cache?.put(path, data);
       return extractMapList(data);
     } on ApiException {
-      return <Map<String, dynamic>>[];
+      return _staleDiscoveryList(path);
     } catch (_) {
-      return <Map<String, dynamic>>[];
+      return _staleDiscoveryList(path);
     }
   }
 
-  /// Stops for a route. Failures return an empty list (see [orgRoutes]).
+  /// Stops for a route. Failures return an empty list (see [orgRoutes]); a
+  /// stale cache is preferred over an empty list. Cached for [_discoveryTtl].
   Future<List<Map<String, dynamic>>> routeStops(
     String orgId,
     String routeId,
   ) async {
+    final path = '/organizations/$orgId/routes/$routeId/stops/';
+    final cached = await _freshDiscovery(path);
+    if (cached != null) return extractMapList(cached);
     try {
       final data =
-          await _api.get('/organizations/$orgId/routes/$routeId/stops/');
+          await _api.get(path);
+      await _cache?.put(path, data);
       return extractMapList(data);
     } on ApiException {
-      return <Map<String, dynamic>>[];
+      return _staleDiscoveryList(path);
     } catch (_) {
-      return <Map<String, dynamic>>[];
+      return _staleDiscoveryList(path);
     }
   }
 
@@ -170,5 +199,54 @@ class TripRepository {
     } catch (_) {
       return Err(message);
     }
+  }
+
+  /// Fresh discovery payload (age < [_discoveryTtl]) or null.
+  Future<Object?> _freshDiscovery(String cacheKey) async {
+    final cache = _cache;
+    if (cache == null) return null;
+    try {
+      final at = await cache.fetchedAt(cacheKey);
+      if (at == null) return null;
+      final age = DateTime.now().difference(at);
+      if (age > _discoveryTtl) return null;
+      return cache.get(cacheKey);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Discovery result fallback: stale cache or the original network error.
+  Future<Result<List<Map<String, dynamic>>>> _staleDiscoveryOrErr(
+    String cacheKey,
+    String message,
+  ) async {
+    final cache = _cache;
+    if (cache != null) {
+      try {
+        final raw = await cache.get(cacheKey);
+        if (raw != null) return Ok(extractMapList(raw), stale: true);
+      } catch (_) {
+        // fall through to the network error below
+      }
+    }
+    return Err(message);
+  }
+
+  /// Discovery list fallback: stale cache if present, else empty list
+  /// (matches the pre-cache per-org resilience contract).
+  Future<List<Map<String, dynamic>>> _staleDiscoveryList(
+    String cacheKey,
+  ) async {
+    final cache = _cache;
+    if (cache != null) {
+      try {
+        final raw = await cache.get(cacheKey);
+        if (raw != null) return extractMapList(raw);
+      } catch (_) {
+        // fall through to empty list below
+      }
+    }
+    return <Map<String, dynamic>>[];
   }
 }
