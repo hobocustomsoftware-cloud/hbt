@@ -22,7 +22,7 @@ void main() {
       storage = MockStorage();
     });
 
-    Widget _buildPage(ApiClient api, {bool authenticated = true}) {
+    Widget buildPage(ApiClient api, {bool authenticated = true}) {
       final session = SessionController(api: api, storage: storage);
       session.loading = false;
       session.authenticated = authenticated;
@@ -42,13 +42,13 @@ void main() {
     }
 
     testWidgets('shows skeleton loader on initial mount', (tester) async {
-      await tester.pumpWidget(_buildPage(_DelayedTripsApi()));
+      await tester.pumpWidget(buildPage(_DelayedTripsApi()));
       await tester.pump();
       expect(find.byType(SkeletonLoader), findsOneWidget);
     });
 
     testWidgets('shows ErrorView when API call fails', (tester) async {
-      await tester.pumpWidget(_buildPage(_FailingTripsApi()));
+      await tester.pumpWidget(buildPage(_FailingTripsApi()));
       await tester.pumpAndSettle();
 
       expect(find.byType(ErrorView), findsOneWidget);
@@ -56,14 +56,14 @@ void main() {
     });
 
     testWidgets('shows empty state when no trips', (tester) async {
-      await tester.pumpWidget(_buildPage(_EmptyTripsApi()));
+      await tester.pumpWidget(buildPage(_EmptyTripsApi()));
       await tester.pumpAndSettle();
 
       expect(find.text('No trips found.'), findsOneWidget);
     });
 
     testWidgets('shows trip list with status chips', (tester) async {
-      await tester.pumpWidget(_buildPage(_TripsListApi()));
+      await tester.pumpWidget(buildPage(_TripsListApi()));
       await tester.pumpAndSettle();
 
       expect(find.text('T-001'), findsOneWidget);

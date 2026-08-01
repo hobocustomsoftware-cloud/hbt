@@ -12,6 +12,16 @@ import '../infrastructure/offline/connectivity_monitor.dart';
 import '../infrastructure/offline/device_registry.dart';
 import '../infrastructure/offline/sync_manager.dart';
 
+/// Installs the app-wide friendly error widget. Called from [main] so the
+/// real app gets the boundary; tests that pump the widget directly are not
+/// affected (flutter_test asserts ErrorWidget.builder is untouched).
+void configureFriendlyErrorWidget() {
+  ErrorWidget.builder = (details) {
+    debugPrint('HBT_BUSINESS widget error: ${details.exception}');
+    return _FriendlyErrorWidget(details: details);
+  };
+}
+
 /// Friendly replacement for the default red/grey error widget.
 class _FriendlyErrorWidget extends StatelessWidget {
   const _FriendlyErrorWidget({required this.details});
@@ -146,10 +156,6 @@ class _HbtBusinessAppState extends State<HbtBusinessApp> {
         useMaterial3: true,
       ),
       builder: (context, child) {
-        ErrorWidget.builder = (details) {
-          debugPrint('HBT_BUSINESS widget error: ${details.exception}');
-          return _FriendlyErrorWidget(details: details);
-        };
         // Offline banner across the whole app.
         return Column(
           children: [

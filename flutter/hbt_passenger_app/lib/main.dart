@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'app/passenger_app.dart';
@@ -16,6 +15,8 @@ import 'core/auth/auth_controller.dart';
 /// screen instead of a white screen of death.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  configureFriendlyErrorWidget();
 
   FlutterError.onError = (details) {
     FlutterError.presentError(details);

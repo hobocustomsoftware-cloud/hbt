@@ -17,6 +17,8 @@ export 'app/app.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  configureFriendlyErrorWidget();
+
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
     debugPrint('HBT_BUSINESS unhandled framework error: '

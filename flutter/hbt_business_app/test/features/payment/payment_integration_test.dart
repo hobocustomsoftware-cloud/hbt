@@ -66,13 +66,11 @@ void main() {
     late PaymentFlowMockApi api;
     late String orgId;
     late String bookingId;
-    late String quoteId;
 
     setUp(() {
       api = PaymentFlowMockApi();
       orgId = 'org-001';
       bookingId = 'b-001';
-      quoteId = 'q-001';
     });
 
     group('payment accounts loading', () {

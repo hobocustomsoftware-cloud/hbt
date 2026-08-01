@@ -13,7 +13,7 @@ import '../../helpers/test_helpers.dart';
 
 void main() {
   group('RefundListPage', () {
-    Widget _buildPage(ApiClient api) {
+    Widget buildPage(ApiClient api) {
       final storage = MockStorage();
       final session = SessionController(api: api, storage: storage);
       session.loading = false;
@@ -30,13 +30,13 @@ void main() {
     }
 
     testWidgets('shows LoadingView on initial load', (tester) async {
-      await tester.pumpWidget(_buildPage(_HangingApi()));
+      await tester.pumpWidget(buildPage(_HangingApi()));
       await tester.pump();
       expect(find.byType(LoadingView), findsOneWidget);
     });
 
     testWidgets('shows ErrorView on API failure', (tester) async {
-      await tester.pumpWidget(_buildPage(_FailingApi()));
+      await tester.pumpWidget(buildPage(_FailingApi()));
       await tester.pumpAndSettle();
 
       expect(find.byType(ErrorView), findsOneWidget);
@@ -44,7 +44,7 @@ void main() {
     });
 
     testWidgets('shows EmptyView when no refunds', (tester) async {
-      await tester.pumpWidget(_buildPage(_EmptyApi()));
+      await tester.pumpWidget(buildPage(_EmptyApi()));
       await tester.pumpAndSettle();
 
       expect(find.byType(EmptyView), findsOneWidget);
@@ -52,7 +52,7 @@ void main() {
     });
 
     testWidgets('shows refund list with status chips', (tester) async {
-      await tester.pumpWidget(_buildPage(_RefundListApi()));
+      await tester.pumpWidget(buildPage(_RefundListApi()));
       await tester.pumpAndSettle();
 
       expect(find.text('RF-001'), findsOneWidget);
@@ -61,7 +61,7 @@ void main() {
     });
 
     testWidgets('status filter chips are interactive', (tester) async {
-      await tester.pumpWidget(_buildPage(_RefundListApi()));
+      await tester.pumpWidget(buildPage(_RefundListApi()));
       await tester.pumpAndSettle();
 
       expect(find.text('All'), findsOneWidget);

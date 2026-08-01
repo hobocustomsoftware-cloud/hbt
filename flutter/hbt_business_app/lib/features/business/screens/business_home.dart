@@ -465,21 +465,4 @@ class _QuickAction extends StatelessWidget {
   );
 }
 
-class _PlaceholderPage extends StatelessWidget {
-  const _PlaceholderPage({required this.icon, required this.title});
 
-  final IconData icon;
-  final String title;
-
-  @override
-  Widget build(BuildContext context) => Center(
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 64),
-        const SizedBox(height: 12),
-        Text('$title is being connected to the API flow.'),
-      ],
-    ),
-  );
-}

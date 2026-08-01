@@ -13,7 +13,7 @@ import '../../helpers/test_helpers.dart';
 
 void main() {
   group('CounterBookingPage — loading state', () {
-    Widget _buildPage(ApiClient api) {
+    Widget buildPage(ApiClient api) {
       final storage = MockStorage();
       final session = SessionController(api: api, storage: storage);
       session.loading = false;
@@ -34,13 +34,13 @@ void main() {
     }
 
     testWidgets('shows loading indicator on initial load', (tester) async {
-      await tester.pumpWidget(_buildPage(_HangingApi()));
+      await tester.pumpWidget(buildPage(_HangingApi()));
       await tester.pump();
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
     testWidgets('shows ErrorCard on initial load failure', (tester) async {
-      await tester.pumpWidget(_buildPage(_FailingApi()));
+      await tester.pumpWidget(buildPage(_FailingApi()));
       await tester.pumpAndSettle();
 
       expect(find.byType(ErrorCard), findsOneWidget);
@@ -48,7 +48,7 @@ void main() {
     });
 
     testWidgets('renders form when data loads successfully', (tester) async {
-      await tester.pumpWidget(_buildPage(_LoadedBookingApi()));
+      await tester.pumpWidget(buildPage(_LoadedBookingApi()));
       await tester.pumpAndSettle();
 
       expect(find.text('Counter Booking'), findsOneWidget);

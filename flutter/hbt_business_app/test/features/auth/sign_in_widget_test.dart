@@ -26,7 +26,6 @@ void main() {
     });
 
     testWidgets('submitting shows BusyButton spinner', (tester) async {
-      final session = createMockSession(authenticated: false);
       // Replace api with one that never completes
       final delayedApi = _DelayedApi();
       // We need a new session with the delayed API

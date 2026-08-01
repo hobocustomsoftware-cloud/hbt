@@ -1,6 +1,27 @@
 # HBT Platform — Merged Audit Findings & Remediation Roadmap
 
 **Created:** 2026-07-31
+**Last verified:** 2026-08-01 (post-disconnect recovery; drive remounted F: → H:)
+
+## Status summary (2026-08-01)
+
+| Milestone | Status | Evidence |
+|-----------|--------|----------|
+| M0 Booking integrity | ✅ DONE | Backend suite 118/118 OK (incl. 8 seat-lock tests); seat-lock model/migration/services/endpoints verified in code; create_booking rejects foreign-held seats + consumes own locks; TicketValidateActionView idempotent + audited |
+| M1 Security | ✅ DONE | Passenger 401-triggered refresh wired via `api.onRefreshToken`; validators (Myanmar phone regex) on login/register; error boundary `configureFriendlyErrorWidget()` + `runZonedGuarded` in both apps; unsafe `substring(0,8)` replaced |
+| M2 Offline activation | ✅ DONE | `DeviceRegistry.initialize()` + `AppDatabase.initialize()` + SyncManager at startup; connectivity monitor 15s ping; offline banner; real sync tab |
+| M3 Operational readiness | ✅ DONE | `/health/`, `/health/live/`, `/health/ready/`; JSON logging; DRF PageNumberPagination (page size 100); CI matrix over both Flutter apps + backend workflow |
+| M4 Passenger offline + architecture | ⏳ Pending | Repository layer (F-20), shared package (F-21), DI (F-22), passenger offline (F-13) |
+| M5 Quality & cleanup | ⏳ Pending | Dead widgets (F-23), tests (F-24), localization (F-25), search (F-26), cert pinning/idle timeout (F-09), crash reporting SDK (F-18), composite indexes (F-19) — **explicitly last** |
+
+**Verification runs (2026-08-01):** backend `manage.py test` → 118 tests OK (493s). Business app `flutter analyze` → no issues; `flutter test` → 57/57. Passenger app `flutter analyze` → no issues; `flutter test` → 9/9.
+
+**Recovery notes:** drive disconnected 2026-07-31 20:00 (Event 50/137/140, dirty volume). Remounted as H: on 2026-08-01. Git metadata (`.git/`) was empty — repo re-initialized and full working tree committed (1029 files). `chkdsk` was the original plan; files verified readable and all tests pass, so no data loss detected in the working tree. Recommend `chkdsk H: /f` at next idle window and copying repo to C:/D: to remove single-point-of-failure.
+
+---
+
+## 1. Verification note — stale audit claims (already fixed, no action)
+
 **Source audits merged:**
 1. `flutter/hbt_business_app/docs/review/full_code_audit.md` (2026-07-30, overall 58/100)
 2. `flutter/hbt_passenger_app/docs/review/passenger_review.md` (2026-07-30, overall 38/100)

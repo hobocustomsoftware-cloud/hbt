@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../core/auth/auth_controller.dart';
@@ -11,6 +10,16 @@ import '../features/trip/presentation/trip_detail_screen.dart';
 import '../features/booking/presentation/booking_screen.dart';
 
 /// Friendly replacement for the default red/grey error widget.
+/// Installs the app-wide friendly error widget. Called from [main] so the
+/// real app gets the boundary; tests that pump the widget directly are not
+/// affected (flutter_test asserts ErrorWidget.builder is untouched).
+void configureFriendlyErrorWidget() {
+  ErrorWidget.builder = (details) {
+    debugPrint('HBT_PASSENGER widget error: ${details.exception}');
+    return _FriendlyErrorWidget(details: details);
+  };
+}
+
 class _FriendlyErrorWidget extends StatelessWidget {
   const _FriendlyErrorWidget({required this.details});
 
@@ -84,13 +93,7 @@ class _PassengerAppState extends State<PassengerApp> {
         title: 'HBT Passenger',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
-        builder: (context, child) {
-          ErrorWidget.builder = (details) {
-            debugPrint('HBT_PASSENGER widget error: ${details.exception}');
-            return _FriendlyErrorWidget(details: details);
-          };
-          return child!;
-        },
+        builder: (context, child) => child!,
         initialRoute: '/splash',
         onGenerateRoute: _onGenerateRoute,
         onUnknownRoute: (settings) => MaterialPageRoute(
