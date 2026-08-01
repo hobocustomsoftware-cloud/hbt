@@ -1,0 +1,232 @@
+# HBT — Platform Design Principles & Business Rules (The Charter)
+
+**Date:** 2026-08-01
+**Author:** Product Designer / UX Researcher / Enterprise Dashboard Architect
+**Status:** Charter — supersedes earlier KPI/role lists where they conflict.
+**Scope:** Every screen, workflow, model, and setting in the HBT platform
+(Business App, Passenger App, Booking Website, Corporate Website).
+
+---
+
+## 1. Core principle
+
+> **HBT is NOT a ticket selling system.**
+> **HBT is a complete Myanmar Transport Operating Platform.**
+
+Every feature must solve a real business problem for Myanmar transport companies.
+Optimize for:
+
+1. **Business simplicity** — a workflow confusing to a first-time owner must be
+   redesigned, not documented.
+2. **Offline-first** — field roles (conductor/driver/gate) never stop working without
+   internet; queues sync when connectivity returns.
+3. **Cash integrity** — every cash node has an actor, a count, and a difference record;
+   cash is sacred.
+4. **Fraud prevention** — system-generated numbers, audit trails, seat-lock conflicts,
+   ticket/cargo/refund controls.
+5. **Speed of operation** — reduce clicks, typing, and training time. **Maximum 3 taps
+   for common operations.**
+6. **Zero IT knowledge required** — the 55-year-old owner test (§8) gates every screen.
+
+Never design generic CRUD. Every screen is justified by a real operational need.
+
+---
+
+## 2. System-generated vs user input
+
+### 2.1 Auto-generated (users NEVER type these)
+| Identifier | Pattern principle |
+|---|---|
+| Route Code | Auto from origin–destination + sequence (e.g., `YGN-MDY-01`) |
+| Vehicle Code | Internal asset code (e.g., `V-0001`), distinct from registration |
+| Trip Number | Date + schedule code (e.g., `YM-0801`) |
+| Booking Number | Auto, org-scoped, sequential |
+| Ticket Number | Auto, org+day sequential, printable on receipt |
+| Cargo Number | Auto (`CG-…`) |
+| Waybill Number | Auto, linked to cargo number |
+| Invoice Number | Auto, org-scoped |
+| Expense Number | Auto (`EX-…`) |
+| Receipt Number | Auto, per counter/shift |
+| Shift Number | Auto, per counter per day |
+| Employee Code | Auto (`E-0001`) |
+
+The app generates, displays, and prints them. No text field ever asks a user to type
+a number the system owns.
+
+### 2.2 Manual user input (legal identifiers — NEVER auto-generated)
+| Identifier | Example |
+|---|---|
+| Vehicle Registration Number | `YGN-15 1P-2325` |
+| NRC | `12/MaHaNa(N)123456` |
+| Passport | `MM-1234567` |
+| Driving License Number | — |
+| Phone Number | `+9597…` |
+| Bank Account | — |
+| Insurance Number | — |
+| License Expiry (date) | — |
+
+These are legal identifiers recorded once at setup, validated by the user, never
+fabricated by the system.
+
+---
+
+## 3. Company setup flow (Owner, once)
+
+```
+Company → Logo → Business Information → Branches → Counters → Vehicles → Seat Layout
+→ Routes → Schedules → Employees → Roles → Business Settings → Cargo Settings
+→ Payment Settings → Branding → Finish
+```
+
+- Stepper wizard, one concern per step, progress persisted (resumable).
+- Every step skippable-with-warning except Company + Owner (already done in onboarding)
+  and Branches; missing data surfaces as dashboard nudges, not blocks.
+- After **Finish**: the Owner Dashboard is fully live (all 24 facts in §4).
+
+---
+
+## 4. Owner dashboard — the full spec (supersedes the earlier 18)
+
+Owner never performs daily operations — **Owner only manages the business.**
+
+| Zone | Facts | Format |
+|---|---|---|
+| **A. Money quartet** | Today's Ticket Revenue · Today's Cargo Revenue · Today's Expenses · Today's Net Profit | 4 large KPI cards (net profit is the hero) |
+| **B. Trip operations** | Trips Running · Trips Delayed ⚠ · Trips Completed · Passengers Today · Cargo Today · On-Time % | 6 compact KPI cards; delayed/completed color-coded |
+| **C. Cash & pending** | Cash in Counters · Bank Balance · Pending Refunds · Pending Approvals | 4 KPI cards with drill links |
+| **D. Fleet & people** | Vehicles Running · Vehicles Under Maintenance · Driver Attendance · Counter Performance | 4 status tiles |
+| **E. Trends** | Revenue Trends (Weekly/Monthly/Yearly toggle) · Expense Breakdown | 2 charts |
+| **F. Performance** | Branch Performance · Top Routes · Top Vehicles | 3 ranking panels |
+| **G. Profit** | Profit & Loss mini (period) | card → full P&L report |
+| **H. Pulse** | Recent Activities · Pending Approvals · Alerts · Announcements | feeds |
+
+**Plus:** Quick Actions (New Trip · New Route · Approve (n) · Export PDF/Excel ·
+Announce) · Notifications bell · Announcements feed.
+**Exports:** PDF + Excel on every KPI group and the whole dashboard.
+
+5-second gate: money quartet → exceptions (delayed/cancelled/cash-diff) → approvals.
+Everything else is one click away.
+
+---
+
+## 5. Role home screens (each role = different home)
+
+| Role | Home = | Core modules |
+|---|---|---|
+| **Owner** | Executive Dashboard | everything (§4) |
+| **Manager** | Operations + Approvals | Approvals, Operations, Branches, Trips, Reports |
+| **Counter** | Shift Dashboard | Shift, Sell Ticket (≤3 taps), Cargo, Online Booking Approval, Print, Cash, Refund* |
+| **Conductor** | Assigned Trip Dashboard | Today's Trip → Boarding → Offline Ticket → Offline Cargo → QR → Settlement |
+| **Driver** | Today's Trip Dashboard | Today's Trip, Trip Sheet, Inspection, Fuel, Breakdown |
+| **Finance** | Finance Dashboard | Revenue, Expenses, Bank, Payroll, Refund, P&L |
+| **Cargo** | Cargo Dashboard | Inbound/Outbound Manifests, Waybills, Tracking, Delivered, Settlement |
+| **Gate** | QR Dashboard | QR scan queue, boarding confirmation, passenger count vs manifest |
+| **Mechanic** | Maintenance Dashboard | Maintenance Schedule, Inspection Reports, Breakdown Repairs, Parts |
+| **Fleet** | Fleet Dashboard | Vehicle Status, Utilization, Maintenance Due, Insurance/Road-Tax Expiry alerts |
+| **HR** | Employee Dashboard | Staff, Roles, Permissions, Attendance, Payroll |
+| **Passenger** | Booking Dashboard | Search → Date → Route → Trip → Seat → Info → NRC* → Pay → QR Ticket → Receipt → Notification |
+
+*Refund on Counter only if owner grants permission; NRC only if business rule requires.
+
+Menus are computed from permissions — **hidden, never disabled**; a user never sees a
+screen they cannot use.
+
+---
+
+## 6. Entity definitions
+
+### 6.1 Vehicle
+Display Name · **Registration Number (manual)** · Vehicle Type · Seat Layout · Capacity
+(derived from layout) · Status (Running / Maintenance / Retired) · Insurance ·
+**Insurance Expiry** · Road Tax · **Road Tax Expiry** · Maintenance Schedule ·
+Assigned Driver · Assigned Conductor.
+
+### 6.2 Route
+Route → Stops → Boarding Points → Drop-off Points → Distance → Duration → Fare →
+Vehicle → Seat Layout → Schedule → Counter(s) → Driver → Conductor → Trip Calendar.
+(One trip = one vehicle + one schedule + one date.)
+
+### 6.3 Passenger journey
+Search → Select Date → Select Route → Select Trip → Select Seat → Passenger
+Information → NRC (if required) → Payment → QR Ticket → Receipt → Notification.
+
+### 6.4 Cargo journey
+Sender → Receiver → NRC → Phone → Weight → Price → Payment → Receipt → Tracking →
+Delivered → Settlement.
+(Cargo pricing: By Weight or Manual Price — business rule.)
+
+---
+
+## 7. Branding propagation
+
+Owner uploads once → propagates everywhere automatically:
+
+| Asset | Business App | Passenger App | Booking Site | Corporate Site | PDF / Ticket / Receipt |
+|---|---|---|---|---|---|
+| Logo | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Primary / Secondary Color | ✓ (theme) | ✓ | ✓ | ✓ | ✓ |
+| Receipt Header / Footer | ✓ | ✓ | — | — | ✓ |
+| Website Banner | — | — | ✓ | ✓ | — |
+| Ticket Template | — | ✓ | — | — | ✓ |
+| QR Style | — | ✓ | — | — | ✓ |
+| Company Info | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Favicon / App Icon | — | ✓ | ✓ | ✓ | — |
+| Email / SMS / Push Template | — | ✓ | — | — | ✓ |
+
+Single branding record (backend `OrganizationBranding`) → all surfaces. Already
+supported by `HbtTheme.fromBrand()`.
+
+---
+
+## 8. The 55-year-old test (acceptance gate)
+
+> Before implementing any screen ask: *"If a 55-year-old Myanmar bus owner with almost
+> no computer experience uses this screen for the first time, can they understand it
+> without training?"*
+> If the answer is **NO**, redesign the workflow before writing code.
+> **Business simplicity is always more important than technical elegance.**
+
+Every screen ships with this test passed, in both Myanmar and English.
+
+---
+
+## 9. Localization (non-negotiable)
+
+- **Myanmar is the default language; English is optional.**
+- **No hardcoded strings.** Every label, validation, notification, report, receipt,
+  and PDF supports Myanmar + English (existing `AppLocalizations` pattern extends to
+  all new screens).
+
+---
+
+## 10. Responsive & validation loop
+
+- Desktop = Google Workspace quality · Tablet = adaptive layout · Mobile = native feel.
+- **Never** overflow, horizontal-scroll, or clip at 320/375/768/1024/1366/1920/2560.
+- Desktop must NOT look like a stretched mobile app (validated in
+  `docs/responsive_review.md`).
+- **After every implementation:** run backend + business app + passenger app → open
+  browser → walk every journey → screenshots → compare with blueprint → fix until
+  **P0 = 0, P1 = 0, P2 ≤ 3** → update `docs/dashboard_gap_analysis.md`.
+
+---
+
+## 11. Business rules (all configurable, Myanmar-visible)
+
+| Setting | Options / Default |
+|---|---|
+| NRC Required (Passenger) | ON / OFF · default ON |
+| Cargo Sender NRC | ON / OFF |
+| Cargo Receiver NRC | ON / OFF |
+| Cargo Pricing | By Weight / Manual Price |
+| Ticket Printing | Automatic / Manual |
+| Online Booking | Auto Confirm / Counter Confirm |
+| Seat Lock Timeout | configurable (default 10 min) |
+| Receipt Footer | editable text |
+| Refund Rules | configurable (cutoff hours / retention %) |
+| Company Branding | configurable |
+| Theme | from branding colors (light/dark) |
+| Language | Myanmar default, English optional |
+
+Stored per-company; enforced in backend serializers/validators; surfaced in the
+setup wizard (Business / Cargo / Payment Settings steps).

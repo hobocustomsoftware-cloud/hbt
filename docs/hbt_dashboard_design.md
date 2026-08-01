@@ -3,7 +3,8 @@
 **Date:** 2026-08-01
 **Author:** Product Designer / UX Researcher / Enterprise Dashboard Architect
 **Status:** Design proposal — awaiting approval. No code until approved.
-**Derived from:** `docs/dashboard_research.md` (every pattern cited), `docs/ui_master_blueprint.md`,
+**Derived from:** `docs/design_principles.md` (THE charter — supersedes older KPI/role lists),
+`docs/dashboard_research.md` (every pattern cited), `docs/ui_master_blueprint.md`,
 `docs/design_system.md` (tokens #AA0000/#151515, HbtAdaptiveScaffold, HbtKpiGrid, HbtAdaptiveTable).
 
 ---
@@ -19,23 +20,28 @@ The 5-second test is the acceptance gate for every dashboard screen (research §
 
 ---
 
-## 2. The Owner's 18 facts, organized
+## 2. The Owner's 24 facts, organized
 
-All 18 mandated facts are on the Owner dashboard, arranged by **operational gravity**
+All 24 mandated facts are on the Owner dashboard, arranged by **operational gravity**
 (research: money first, operations second, exceptions and approvals third):
 
 | Zone | Facts | Format |
 |---|---|---|
-| **A. Money quartet** | 1 Ticket Revenue · 2 Cargo Revenue · 3 Expenses · 4 Net Profit | 4 large KPI cards, first row |
-| **B. Trip operations** | 5 Running · 6 Delayed · 7 Cancelled Trips · 8 Passengers · 9 Cargo Today | 6 compact KPI cards (incl. derived On-Time %) |
-| **C. Cash & pending** | 10 Cash in Counters · 11 Bank Balance · 12 Pending Refunds · 13 Pending Approvals | 4 KPI cards with drill links |
-| **D. Trends** | Revenue trend · Trip status mix | Charts |
-| **E. Performance** | 14 Branch Performance · 15 Top Routes · 16 Top Staff | Charts + ranking lists |
-| **F. Fleet & people** | 17 Vehicle Status · 18 Driver Attendance | Status panels |
-| **G. Pulse** | Recent activities · Pending approvals · Alerts | Feeds |
+| **A. Money quartet** | 1 Ticket Revenue · 2 Cargo Revenue · 3 Expenses · 4 Net Profit | 4 large KPI cards, first row (net profit = hero) |
+| **B. Trip operations** | 5 Running · 6 Delayed ⚠ · 7 Completed · 8 Passengers · 9 Cargo Today · 10 On-Time % | 6 compact KPI cards |
+| **C. Cash & pending** | 11 Cash in Counters · 12 Bank Balance · 13 Pending Refunds · 14 Pending Approvals | 4 KPI cards with drill links |
+| **D. Fleet & people** | 15 Vehicles Running · 16 Vehicles Under Maintenance · 17 Driver Attendance · 18 Counter Performance | 4 status tiles |
+| **E. Trends** | Revenue trend (Weekly/Monthly/Yearly toggle) · Expense breakdown | 2 charts |
+| **F. Performance** | 19 Branch Performance · 20 Top Routes · 21 Top Vehicles | 3 ranking panels |
+| **G. Profit** | 22 Profit & Loss (period mini) | card → full P&L |
+| **H. Pulse** | 23 Recent activities / Pending approvals · 24 Alerts · Announcements | feeds |
+
+Plus: Quick Actions (New Trip · New Route · Approve(n) · Export PDF/Excel · Announce) ·
+Notifications bell · Announcements feed.
 
 **Delayed trips, cancelled trips, cash differences, and pending approvals are
 color-alerted (amber/red) the moment they are non-zero** (research: exception-first).
+Export (PDF/Excel) available on every KPI group and the whole dashboard.
 
 ---
 
@@ -59,20 +65,24 @@ color-alerted (amber/red) the moment they are non-zero** (research: exception-fi
 │              │  │CASH CTRS  │ │BANK BAL   │ │PND REFUND │ │PND APPROVE│    │
 │              │  │ 4,200,000 │ │ 58,000,000│ │ 3 · 900k  │ │ 7 ▸ review│    │
 │              │  └───────────┘ └───────────┘ └───────────┘ └───────────┘    │
+│              │  ┌───────────┐ ┌───────────┐ ┌───────────┐ ┌───────────┐    │
+│              │  │VEH RUN    │ │VEH MAINT  │ │DRIVER ATT │ │CTR PERF   │    │
+│              │  │ 40/45     │ │ 5 ▸ sched │ │ 18/20     │ │ 92/100    │    │
+│              │  └───────────┘ └───────────┘ └───────────┘ └───────────┘    │
 │              │  ┌───────────────────────────┬────────────────────────────┐  │
-│              │  │ Revenue trend (30d line)  │ Trip status (donut)        │  │
-│              │  │   ▁▃▅▂▄▆▇▅▆▇█▇▆▅▆▇       │  ● Run 24  ● Dly 3 ● Cxl 1│  │
+│              │  │ Revenue trend (30d line)  │ Expense breakdown (donut)  │  │
+│              │  │   ▁▃▅▂▄▆▇▅▆▇█▇▆▅▆▇       │  ● Fuel ● Wage ● Parts    │  │
 │              │  └───────────────────────────┴────────────────────────────┘  │
 │              │  ┌───────────────┬───────────────┬────────────────────────┐  │
-│              │  │ Branch perf   │ Top routes    │ Top staff              │  │
-│              │  │ (bar)         │ (bar)         │ (rank list w/ sales)   │  │
+│              │  │ Branch perf   │ Top routes    │ Top vehicles           │  │
+│              │  │ (bar)         │ (bar)         │ (rank list w/ revenue) │  │
 │              │  └───────────────┴───────────────┴────────────────────────┘  │
 │              │  ┌──────────────┬──────────────────┬───────────────────────┐  │
-│              │  │ Vehicle st.  │ Driver attendance│ Recent activity      │  │
-│              │  │ 40/45 avail  │ 18/20 present    │ · U Ko settled YM-08… │  │
-│              │  │ ▓▓▓▓▓▓░░░░   │ ▓▓▓▓▓▓▓▓▓░       │ · Refund #334 apprv…  │  │
+│              │  │ P&L (period) │ Recent activity  │ Pending approvals     │  │
+│              │  │ +15.8M       │ · U Ko settled…  │ · Refund #334 … ▸     │  │
 │              │  └──────────────┴──────────────────┴───────────────────────┘  │
 │              │  Alerts: 2 delayed · 1 cancelled · cash diff +12,000 · see all│
+│              │  📢 Announcements: [New route Yangon→Mandalay from Aug 5]     │
 └──────────────┴──────────────────────────────────────────────────────────────┘
 ```
 
@@ -82,8 +92,9 @@ color-alerted (amber/red) the moment they are non-zero** (research: exception-fi
 - Sidebar 248px, collapsible to 72px icons; 4 groups: **Operate** (Dashboard, Trips,
   Ticket, Cargo), **Manage** (Fleet, Finance, HR), **Insight** (Reports), **Admin**
   (Settings, Users, Roles).
-- KPI rows: 4 + 5 + 4 = 13 cards; each card = value + trend + drill.
-- Charts ≤ 3 on home; every chart drills into Reports with the same time filter.
+- KPI rows: 4 + 6 + 4 + 4 = 18 cards; each card = value + trend + drill.
+- Charts = 2 on home (revenue trend + expense breakdown); every chart drills into
+  Reports with the same time filter.
 - Content max-width 1680 on 1440+; centered, no stretching.
 
 ---
@@ -112,7 +123,7 @@ color-alerted (amber/red) the moment they are non-zero** (research: exception-fi
 │          │ ┌────────────┬────────────────┐   │
 │          │ │ Branch perf│ Trip status    │   │
 │          │ └────────────┴────────────────┘   │
-│          │ Top routes ▸ · Top staff ▸ (cards)│
+│          │ Top routes ▸ · Top vehicles ▸ (cards)│
 │          │ Vehicle st. · Driver att. ▸       │
 │          │ Alerts strip (delayed/cancelled)  │
 └─────────┴───────────────────────────────────┘
@@ -167,7 +178,7 @@ color-alerted (amber/red) the moment they are non-zero** (research: exception-fi
 disabled** (blueprint §2.2). No user ever sees a screen they cannot use.
 
 ### 6.1 Owner — everything
-- **Home:** Owner Dashboard (all 18 facts; all branches; all reports; all users).
+- **Home:** Owner Dashboard (all 24 facts; all branches; all reports; all users).
 - **Create:** Company, Branch, Terminal, Route, Vehicle, Driver, Conductor, Counter,
   User, Role, Permission, Pricing, Branding (logo/colors/receipts/PDF/websites).
 - **Modules:** Trips, Ticket, Cargo, Fleet, Finance, HR, Reports, Settings, Users, Roles,
@@ -223,6 +234,34 @@ Today's Trip → Passenger Boarding → Offline Ticket → Offline Cargo → QR 
 - Search → Booking → Payment → History → Profile.
 - Never sees business data; branding is the operator's (logo/colors on trips/tickets).
 
+### 6.8 Cargo — Cargo Dashboard
+- Home = **Cargo Dashboard**: inbound/outbound manifests, pending pickups, in-transit.
+- Modules: Manifests, Waybills (auto-numbered), Sender/Receiver (NRC/phone), Pricing
+  (by weight / manual), Payment + Receipt, Tracking, Delivered, Settlement.
+- Follows the cargo journey in `docs/design_principles.md` §6.4.
+
+### 6.9 Gate — QR Dashboard
+- Home = **QR Dashboard**: boarding queue, scan-verify passengers against manifest.
+- Modules: QR Scan, Boarding Confirmation, Passenger count vs manifest (gate integrity
+  check), No-show / swap handling.
+- Works at the departure gate, terminal — offline-tolerant.
+
+### 6.10 Mechanic — Maintenance Dashboard
+- Home = **Maintenance Dashboard**: due/past-due services, open repairs.
+- Modules: Maintenance Schedule, Inspection Reports, Breakdown Repairs, Parts/Job log.
+- Never sees revenue; sees vehicle condition only.
+
+### 6.11 Fleet — Fleet Dashboard
+- Home = **Fleet Dashboard**: vehicle status grid (running/maintenance/retired),
+  utilization, insurance & road-tax expiry alerts.
+- Modules: Vehicles (registration number manual; vehicle code auto), Seat Layouts,
+  Maintenance due, Insurance/Road Tax expiries (legal identifiers never auto-generated).
+
+### 6.12 HR — Employee Dashboard
+- Home = **Employee Dashboard**: staff list, attendance today, open leave.
+- Modules: Employees (employee code auto), Roles, Permissions, Attendance, Payroll.
+- Owner-only management of roles/permissions lives here; other roles never see it.
+
 ---
 
 ## 7. Responsive principles (STEP 4)
@@ -252,7 +291,7 @@ HubSpot (research §2.10) and applied to HBT:
 
 | # | Screen | Content | Justification (research) |
 |---|--------|---------|--------------------------|
-| O-1 | Dashboard | 13 KPI cards + 3 charts + 3 rank panels + vehicle/driver panels + activity + alerts | 5-second gate (§2) |
+| O-1 | Dashboard | 18 KPI cards + 2 charts + 3 rank panels + P&L + activity + approvals + alerts + announcements + PDF/Excel export | 5-second gate (§2) + 55-year-old test |
 | O-2 | Trips (list) | Filters: date/branch/route/status; chips; drill to trip detail | Logistics OTP (§1) |
 | O-3 | Trip detail | Timeline stepper (depart→arrive), manifest, revenue, settlement | Logistics timeline |
 | O-4 | Ticket sales | Table + day chart; export PDF/Excel | Financial |
@@ -273,3 +312,7 @@ Per `docs/dashboard_gap_analysis.md` after implementation walkthrough:
 **0 P0, 0 P1, ≤3 P2 per screen; every screen 0–100 scored against this blueprint.**
 No screen ships until its mandatory facts, actions, reports, navigation, and charts
 are present per the matrix above.
+
+**Every screen must also pass the 55-year-old test** (`docs/design_principles.md` §8):
+if a first-time Myanmar bus owner cannot use it without training, the workflow is
+redesigned before code is written.
