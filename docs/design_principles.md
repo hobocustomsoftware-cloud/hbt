@@ -259,6 +259,11 @@ Every dashboard section must answer one of:
 Design test: for each dashboard widget, name the decision it supports and the action
 it leads to. A widget without an action is removed (research: actionable > vanity).
 
+**The three-question test** — every dashboard (any role) must answer:
+1. **What happened today?** (money, trips, passengers, cargo, exceptions)
+2. **What requires my attention now?** (approvals, delays, cash differences, breakdowns)
+3. **What should I do next?** (next recommended action — explicit, actionable, one tap)
+
 ---
 
 ## 13. Workload test (acceptance gate #2)
@@ -374,23 +379,72 @@ actions ("New Trip", "Approve 7"). Never searches across tenants.
 
 ---
 
-## 19. Implementation order (approved phases)
+## 19. Implementation order (approved phases, wave-gated)
 
 ```
-1. Design System
-2. Company Setup Wizard
-3. Branding Engine
-4. Owner Dashboard
-5. Role Navigation
-6. Users & Roles
-7. Branch Management
-8. Vehicle & Seat Designer
-9. Route Wizard
-10. Counter
-11. Conductor
-12. Passenger
+Wave 1   Design System + Company Setup Wizard + Branding Engine
+Wave 2   Owner Dashboard + Role Navigation
+Wave 3   Users · Roles · Branches
+Wave 4   Vehicle · Seat Layout Designer · Route Wizard
+Wave 5   Counter
+Wave 6   Conductor (spare — lower priority)
+Wave 7   Passenger
 ```
 
-Each phase follows the validation loop (§10: run apps → walk journeys → screenshots →
-compare → fix until P0=0, P1=0, P2≤3) and commits separately under the remediation
-rules (AGENTS.md).
+### Sequential validation rule (hard gate)
+> Before implementing a new screen, launch the previous implementation, walk the
+> complete user journey, verify no regression, then continue.
+> **Never implement two business modules without validating the previous one.**
+
+Each wave: run apps → walk every journey → screenshots → compare with blueprint → fix
+until P0=0, P1=0, P2≤3 → update gap analysis → commit separately (remediation rules,
+AGENTS.md).
+
+---
+
+## 20. Company Setup Dashboard (owner's pre-live home)
+
+Until setup is complete, the owner's post-login home is the **Company Setup Dashboard**
+(not the empty Owner Dashboard). It answers the three questions with a readiness view:
+
+```
+Company Setup          ██████░░░░  60%
+Remaining: ✓ Logo  ✓ Branch  ✓ Counter  ☐ Vehicle  ☐ Route  ☐ Employees
+
+System Health
+🟢 Company Ready     🟡 Missing Vehicles     🟢 Branch Ready     🔴 No Employees
+Overall 78%
+
+Next Recommended Action
+  ↓ Create Vehicle
+  ↓ Assign Driver
+  ↓ Create Route
+  ↓ Ready to Sell
+
+Business Readiness   85%    Next Step: Configure Cargo    Estimated Time: 5 Minutes
+```
+
+Elements:
+- **Progress bar** (setup steps completed / total) + remaining checklist.
+- **System Health tiles** — per-area status (🟢 ready / 🟡 partial / 🔴 blocked) +
+  overall %. Each tile drills to the setup step that fixes it.
+- **Next Recommended Action** — a one-tap guided path to "Ready to Sell"; each step
+  opens the wizard at that step; the final state is a celebration + handoff to the
+  Owner Dashboard.
+- **Business Readiness %** + next step + estimated time (reduces anxiety, sets
+  expectation — 55-year-old test).
+
+Readiness drives dashboard content: until "Ready to Sell" is achieved, the owner sees
+setup nudges, not sales KPIs.
+
+---
+
+## 21. Demo companies (canonical names)
+
+Demo/seed ecosystem uses these seven named companies (+ generated ones to reach 20):
+
+`Shwe Ayeyar · Myanmar Star · Golden Road · Royal Express · Unity Express ·
+Blue Mandalay · Delta Line`
+
+(They supersede earlier ad-hoc demo names in seed scripts; the ecosystem generator
+uses this list for the 20-company demo set.)

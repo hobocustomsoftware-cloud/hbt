@@ -92,12 +92,28 @@ state is partly an artifact of a broken request, not an accurate empty state.
 
 ## 5. Implementation order (when approved)
 
-Per `docs/design_principles.md` §19 (12 phases) and `docs/hbt_dashboard_design.md` §9
+Per `docs/design_principles.md` §19 (wave-gated order) and `docs/hbt_dashboard_design.md` §9
 validation gate (**0 P0, 0 P1, ≤3 P2 per screen** after adoption walkthrough):
 
+```
+Wave 1   Design System + Company Setup Wizard + Branding Engine
+Wave 2   Owner Dashboard + Role Navigation
+Wave 3   Users · Roles · Branches
+Wave 4   Vehicle · Seat Layout Designer · Route Wizard
+Wave 5   Counter
+Wave 6   Conductor (spare)
+Wave 7   Passenger
+```
+
+**Hard gate between waves:** launch the previous implementation → walk the complete
+user journey → verify no regression → only then start the next module. Never two
+business modules without validating the previous one (charter §19).
+
+Wave detail:
 1. **Design System** — adopt HbtTheme (#AA0000/#151515) + HbtAdaptiveScaffold in the
    real app shell (foundation already validated at all breakpoints).
-2. **Company Setup Wizard** — 17-step flow per charter §3 (Company→…→Branding→Finish).
+2. **Company Setup Wizard** — 17-step flow per charter §3 + **Company Setup Dashboard**
+   (readiness %, next recommended action, health tiles — charter §20).
 3. **Branding Engine** — OrganizationBranding → theme/tickets/receipts/PDF/websites.
 4. **Owner Dashboard** — zones A–H (18 KPI cards + charts + rankings + P&L + exports);
    new backend aggregation endpoints required for most KPIs.
@@ -111,8 +127,8 @@ validation gate (**0 P0, 0 P1, ≤3 P2 per screen** after adoption walkthrough):
 11. **Conductor** — Assigned Trip Dashboard; offline queue; boarding; QR; settlement.
 12. **Passenger** — search→book→pay→QR→history; branding from operator.
 
-**Runtime P1 fixes folded into phases 1–5:** org-slug resolution (`organizations//`
+**Runtime P1 fixes folded into waves 1–3:** org-slug resolution (`organizations//`
 400s), `auth/refresh/` 404, `me/devices/` 400.
 
-Each phase: walk every journey (browser, all breakpoints) → screenshots → update this
+Each wave: walk every journey (browser, all breakpoints) → screenshots → update this
 document with post-fix scores. Target: Home ≥ 90.

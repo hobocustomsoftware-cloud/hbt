@@ -20,6 +20,10 @@ Nothing else may compete for the first five seconds. Everything else is one clic
 decision and lead to an action. A widget without an action is removed. Dashboards
 never exist merely to display data.
 
+**Three-question test** (charter §12): every dashboard must answer (1) *What happened
+today?* (2) *What requires my attention now?* (3) *What should I do next?* — with an
+explicit next action, one tap away.
+
 The 5-second test is the acceptance gate for every dashboard screen (research §2.3),
 alongside the 55-year-old test and the workload test (charter §8, §13).
 
@@ -103,6 +107,38 @@ Export (PDF/Excel) available on every KPI group and the whole dashboard.
 - Charts = 2 on home (revenue trend + expense breakdown); every chart drills into
   Reports with the same time filter.
 - Content max-width 1680 on 1440+; centered, no stretching.
+
+### 3.1 Company Setup Dashboard (owner's pre-live home)
+
+Until setup completes, the owner's post-login home is the setup readiness dashboard
+(charter §20) — it answers the three questions while the business is being configured:
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│ ◆ HBT        [Search… ⌘K]               🔔   U Aung Owner ▾        │
+├──────────────┬──────────────────────────────────────────────────────────┤
+│ ▸ Dashboard  │  Company Setup       ██████░░░░ 60%                     │
+│ ▸ Trips      │  Remaining: ✓ Logo ✓ Branch ✓ Counter ☐ Vehicle ☐ Route│
+│ ▸ Ticket     │              ☐ Employees                                │
+│ ▸ Cargo      │  ┌──────────┬──────────┬──────────┬──────────┐          │
+│ ▸ Fleet      │  │🟢 Company│🟡 Vehicles│🟢 Branch │🔴 Employees│          │
+│ ▸ Finance    │  │ Ready    │ Missing  │ Ready    │ None     │          │
+│ ▸ HR         │  │          │          │          │          │          │
+│ ▸ Reports    │  │ Overall 78%                                         │
+│ ▸ Settings   │  ├────────────────────────────────────────────────────┤  │
+│              │  │ NEXT RECOMMENDED ACTION                             │  │
+│              │  │   ↓ Create Vehicle  ↓ Assign Driver  ↓ Create Route │  │
+│              │  │   ↓ Ready to Sell                                  │  │
+│              │  ├────────────────────────────────────────────────────┤  │
+│              │  │ Business Readiness 85%  Next: Configure Cargo      │  │
+│              │  │ Estimated Time: 5 Minutes                          │  │
+└──────────────┴────────────────────────────────────────────────────────┘
+```
+
+- Every health tile drills into the setup step that fixes it.
+- The final "Ready to Sell" step hands off to the full Owner Dashboard (§3).
+- On mobile/tablet: progress bar + health tiles on top, next-action list below
+  (same hierarchy as desktop).
 
 ---
 
