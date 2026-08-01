@@ -382,6 +382,8 @@ actions ("New Trip", "Approve 7"). Never searches across tenants.
 ## 19. Implementation order (approved phases, wave-gated)
 
 ```
+Wave 0   UI/UX Reference System (docs: ui_reference_library, dashboard_component_
+         library, theme_guidelines, dashboard_wireframes, responsive_guidelines)
 Wave 1   Design System + Company Setup Wizard + Branding Engine
 Wave 2   Owner Dashboard + Role Navigation
 Wave 3   Users · Roles · Branches
@@ -395,6 +397,8 @@ Wave 7   Passenger
 > Before implementing a new screen, launch the previous implementation, walk the
 > complete user journey, verify no regression, then continue.
 > **Never implement two business modules without validating the previous one.**
+
+Wave 0 gate: no UI is implemented until the five Wave 0 documents are approved.
 
 Each wave: run apps → walk every journey → screenshots → compare with blueprint → fix
 until P0=0, P1=0, P2≤3 → update gap analysis → commit separately (remediation rules,
