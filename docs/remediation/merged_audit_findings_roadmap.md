@@ -11,7 +11,7 @@
 | M1 Security | ✅ DONE | Passenger 401-triggered refresh wired via `api.onRefreshToken`; validators (Myanmar phone regex) on login/register; error boundary `configureFriendlyErrorWidget()` + `runZonedGuarded` in both apps; unsafe `substring(0,8)` replaced |
 | M2 Offline activation | ✅ DONE | `DeviceRegistry.initialize()` + `AppDatabase.initialize()` + SyncManager at startup; connectivity monitor 15s ping; offline banner; real sync tab |
 | M3 Operational readiness | ✅ DONE | `/health/`, `/health/live/`, `/health/ready/`; JSON logging; DRF PageNumberPagination (page size 100); CI matrix over both Flutter apps + backend workflow |
-| M4 Passenger offline + architecture | ⏳ Pending | Repository layer (F-20), shared package (F-21), DI (F-22), passenger offline (F-13) |
+| M4 Passenger offline + architecture | 🔄 M4a DONE (F-20 passenger repo layer); M4b in progress | F-20: Result<T>, DTOs, Trip/Booking/Ticket repositories, screens migrated (analyze clean, suite green). F-13 (offline cache/queue) next; F-21/F-22 deferred within M4 |
 | M5 Quality & cleanup | ⏳ Pending | Dead widgets (F-23), tests (F-24), localization (F-25), search (F-26), cert pinning/idle timeout (F-09), crash reporting SDK (F-18), composite indexes (F-19) — **explicitly last** |
 
 **Verification runs (2026-08-01):** backend `manage.py test` → 118 tests OK (493s). Business app `flutter analyze` → no issues; `flutter test` → 57/57. Passenger app `flutter analyze` → no issues; `flutter test` → 9/9.
