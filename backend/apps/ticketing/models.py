@@ -93,6 +93,12 @@ class Ticket(TimeStampedModel):
 
     class Meta:
         db_table = "ticketing_ticket"
+        indexes = [
+            models.Index(
+                fields=["organization", "status", "issued_at"],
+                name="ticket_org_status_issued_idx",
+            ),
+        ]
         constraints = [
             models.UniqueConstraint(
                 fields=["organization", "ticket_number"],

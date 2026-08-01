@@ -248,6 +248,12 @@ class PaymentRecord(TimeStampedModel):
                 name="unique_provider_payment_reference_per_org",
             ),
         ]
+        indexes = [
+            models.Index(
+                fields=["organization", "status", "created_at"],
+                name="payment_org_status_date_idx",
+            ),
+        ]
 
     @property
     def immutable(self):
