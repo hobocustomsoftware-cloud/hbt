@@ -28,9 +28,13 @@ sealed class Result<T> {
 
 /// Successful result.
 class Ok<T> extends Result<T> {
-  const Ok(this.value);
+  const Ok(this.value, {this.stale = false});
 
   final T value;
+
+  /// True when the value came from the offline cache rather than a fresh
+  /// network response (set by repositories with cache fallback).
+  final bool stale;
 }
 
 /// Failed result with a user-facing [message] and optional technical [cause].

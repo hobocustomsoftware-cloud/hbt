@@ -5,6 +5,8 @@ import '../../../core/widgets/async_state.dart';
 import '../../../core/widgets/async_views.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/status_chip.dart';
+import '../../../shared/models/trip_models.dart';
+import '../../../shared/repositories/result.dart';
 
 /// Passenger trip detail screen.
 ///
@@ -35,6 +37,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
   final AsyncState _state = AsyncState();
   List<Map<String, dynamic>>? _stops;
   Map<String, dynamic>? _fullTrip;
+  bool _staleData = false;
 
   @override
   void initState() {
@@ -53,10 +56,12 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
         setState(() => _state.fail(result.errorMessage!));
         return;
       }
-      final detail = result.valueOrNull!;
+      final ok = result as Ok;
+      final detail = ok.value as TripDetail;
       setState(() {
         _fullTrip = detail.raw;
         _stops = _extractStops(detail.raw);
+        _staleData = ok.stale;
         _state.doneLoading();
       });
     } catch (e) {
@@ -89,9 +94,23 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       ),
       body: _state.loading
           ? const LoadingView()
-          : RefreshIndicator(
-              onRefresh: _loadDetail,
-              child: ListView(
+          : Column(
+              children: [
+                if (_staleData)
+                  Container(
+                    width: double.infinity,
+                    color: Colors.orange.shade100,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6),
+                    child: const Text(
+                      'Showing saved data — may be out of date.',
+                      style: TextStyle(color: Colors.orange, fontSize: 12),
+                    ),
+                  ),
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: _loadDetail,
+                    child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
                   // ── Header card ─────────────────────────────
@@ -333,6 +352,9 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                 ],
               ),
             ),
+          ),
+        ],
+      ),
     );
   }
 

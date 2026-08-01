@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../config/app_config.dart';
 import '../network/api_client.dart';
+import '../../infrastructure/database/app_cache_database.dart';
 import '../../shared/repositories/booking_repository.dart';
 import '../../shared/repositories/ticket_repository.dart';
 import '../../shared/repositories/trip_repository.dart';
@@ -21,10 +22,13 @@ class AuthController extends ChangeNotifier {
   /// Repositories built on the authenticated [api] client.
   ///
   /// Lazily created once; screens receive them via [AuthController] so no DI
-  /// framework is needed (see M4 migration note).
-  late final TripRepository tripRepository = TripRepository(api: api);
+  /// framework is needed (see M4 migration note). Trip/ticket repositories
+  /// share the offline cache for stale-data reads.
+  late final TripRepository tripRepository =
+      TripRepository(api: api, cache: AppCacheDatabase.instance);
   late final BookingRepository bookingRepository = BookingRepository(api: api);
-  late final TicketRepository ticketRepository = TicketRepository(api: api);
+  late final TicketRepository ticketRepository =
+      TicketRepository(api: api, cache: AppCacheDatabase.instance);
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 

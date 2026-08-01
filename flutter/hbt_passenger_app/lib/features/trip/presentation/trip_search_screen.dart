@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/auth/auth_controller.dart';
-import '../../../core/network/api_client.dart';
 import '../../../core/widgets/async_state.dart';
+import '../../../shared/models/trip_models.dart';
+import '../../../shared/repositories/result.dart';
 
 /// Two-step passenger trip search.
 ///
@@ -38,6 +39,9 @@ class _TripSearchScreenState extends State<TripSearchScreen> {
   bool _searching = false;
   bool _loadingRoutes = false;
   List<Map<String, dynamic>>? _trips;
+
+  /// True when the current results came from the offline cache.
+  bool _staleData = false;
 
   @override
   void initState() {
@@ -152,13 +156,6 @@ class _TripSearchScreenState extends State<TripSearchScreen> {
           _loadingRoutes = false;
         });
       }
-    } on ApiException catch (e) {
-      if (mounted) {
-        setState(() {
-          _state.fail('Route search failed: ${e.message}');
-          _loadingRoutes = false;
-        });
-      }
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -189,10 +186,10 @@ class _TripSearchScreenState extends State<TripSearchScreen> {
       );
       if (!mounted) return;
       if (result.isOk) {
+        final ok = result as Ok<List<TripSummary>>;
         setState(() {
-          _trips = result.valueOrNull!
-              .map((t) => t.raw)
-              .toList(growable: false);
+          _trips = ok.value.map((t) => t.raw).toList(growable: false);
+          _staleData = ok.stale;
           _searching = false;
         });
       } else {
@@ -479,6 +476,14 @@ class _TripSearchScreenState extends State<TripSearchScreen> {
           ),
         ],
       ),
+      if (_staleData)
+        const Padding(
+          padding: EdgeInsets.only(bottom: 8),
+          child: Text(
+            'Showing saved data — reconnecting to check availability.',
+            style: TextStyle(color: Colors.orange, fontSize: 12),
+          ),
+        ),
       const SizedBox(height: 8),
       ..._trips!.map((trip) => Card(
             margin: const EdgeInsets.only(bottom: 8),
