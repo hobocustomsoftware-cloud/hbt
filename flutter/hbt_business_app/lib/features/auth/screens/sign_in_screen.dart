@@ -3,6 +3,7 @@
 import '../../../app/app_config.dart';
 import '../../../shared/services/api_client.dart';
 import '../../../core/widgets/app_button.dart';
+import '../../onboarding/company_onboarding_screen.dart';
 import '../controllers/session_controller.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -106,6 +107,23 @@ class _SignInScreenState extends State<SignInScreen> {
                     onPressed: _signIn,
                     busy: _submitting,
                     height: 52,
+                  ),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: _submitting
+                        ? null
+                        : () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    CompanyOnboardingScreen(session: widget.session),
+                              ),
+                            );
+                          },
+                    child: const Text(
+                      'ကုမ္ပဏီ အသစ် ဖန်တီးမလား။',
+                      style: TextStyle(fontSize: 16),
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(
