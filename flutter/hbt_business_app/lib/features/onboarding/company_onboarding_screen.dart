@@ -67,7 +67,8 @@ class _CompanyOnboardingScreenState extends State<CompanyOnboardingScreen> {
           'legal_name': _data.legalName.trim(),
           'name_my': _data.companyName.trim(),
           'name_en': _data.companyName.trim(),
-          'public_slug': _data.companyName.trim().toLowerCase().replaceAll(' ', '-'),
+          // public_slug intentionally omitted: the backend auto-generates and
+          // auto-uniquifies it from company_name.
           'primary_color': '#0B7A4B',
           'secondary_color': '#FFFFFF',
           'public_phone': _data.phone.trim(),
@@ -93,18 +94,32 @@ class _CompanyOnboardingScreenState extends State<CompanyOnboardingScreen> {
     } on ApiException catch (error) {
       if (mounted) {
         setState(() {
-          _error = error.message;
+          _error = _localizeError(error.message);
           _submitting = false;
         });
       }
     } catch (error) {
       if (mounted) {
         setState(() {
-          _error = 'မအောင်မြင်ပါ။ ထပ်စမ်းကြည့်ပါ။ ($error)';
+          _error = 'မအောင်မြင်ပါ။ ထပ်စမ်းကြည့်ပါ။';
           _submitting = false;
         });
       }
     }
+  }
+
+  /// Map common API errors to Myanmar (default locale).
+  String _localizeError(String message) {
+    if (message.contains('already exists')) {
+      return 'ဖုန်းနံပါတ် သုံးပြီးသားဖြစ်နေပါသည်။ ဝင်ရောက်ကြည့်ပါ။';
+    }
+    if (message.contains('phone')) {
+      return 'ဖုန်းနံပါတ် မှားနေပါသည်။ ပြန်စစ်ပါ။';
+    }
+    if (message.contains('password')) {
+      return 'စကားဝှက် မမှန်ပါ။ ပြန်စစ်ပါ။';
+    }
+    return 'မအောင်မြင်ပါ။ ထပ်စမ်းကြည့်ပါ။ ($message)';
   }
 
   void _back() {
@@ -290,7 +305,12 @@ class _DoneScreen extends StatelessWidget {
                   width: double.infinity,
                   height: 56,
                   child: FilledButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      // The app root has already switched to the post-login
+                      // home (session became authenticated); pop the wizard
+                      // to reveal it.
+                      Navigator.of(context).popUntil((route) => route.isFirst);
+                    },
                     child: const Text(
                       'Owner Dashboard သို့ သွားရန်',
                       style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
