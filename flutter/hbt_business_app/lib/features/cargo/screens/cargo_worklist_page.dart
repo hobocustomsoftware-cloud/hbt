@@ -31,7 +31,7 @@ class _CargoWorklistPageState extends State<CargoWorklistPage> {
   Future<void> _load() async {
     _state.startLoading();
     try {
-      final records = await widget.session.api.getList(
+      final records = await widget.session.api.getAllPages(
         '/organizations/$_organizationId/cargo/shipments/',
       );
       if (mounted) {

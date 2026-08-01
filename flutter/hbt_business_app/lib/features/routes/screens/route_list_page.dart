@@ -33,10 +33,9 @@ class _RouteListPageState extends State<RouteListPage> {
   Future<void> _loadRoutes() async {
     _state.startLoading();
     try {
-      final data = await widget.session.api.get(
+      final results = await widget.session.api.getAllPages(
         '/organizations/$_orgId/routes/',
       );
-      final results = data['results'] as List<dynamic>;
       setState(() {
         _routes = results.cast<Map<String, dynamic>>();
         _state.doneLoading();

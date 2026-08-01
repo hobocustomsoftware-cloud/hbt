@@ -33,6 +33,13 @@ class MockApiClient extends ApiClient {
   }
 
   @override
+  Future<List<dynamic>> getAllPages(String path) async {
+    final result = _getListResults[path];
+    if (result != null) return result;
+    throw ApiException('Not found');
+  }
+
+  @override
   Future<Map<String, dynamic>> post(
       String path, Map<String, dynamic> body) async {
     final result = _postResults[path];

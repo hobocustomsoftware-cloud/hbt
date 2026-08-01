@@ -77,7 +77,7 @@ class _HangingApi extends ApiClient {
   _HangingApi() : super(baseUrl: 'https://test.example.com');
 
   @override
-  Future<List<dynamic>> getList(String path) async {
+  Future<List<dynamic>> getAllPages(String path) async {
     return Completer<List<dynamic>>().future;
   }
 }
@@ -86,7 +86,7 @@ class _FailingApi extends ApiClient {
   _FailingApi() : super(baseUrl: 'https://test.example.com');
 
   @override
-  Future<List<dynamic>> getList(String path) async {
+  Future<List<dynamic>> getAllPages(String path) async {
     throw ApiException('API error');
   }
 }
@@ -95,7 +95,7 @@ class _EmptyApi extends ApiClient {
   _EmptyApi() : super(baseUrl: 'https://test.example.com');
 
   @override
-  Future<List<dynamic>> getList(String path) async {
+  Future<List<dynamic>> getAllPages(String path) async {
     return [];
   }
 }
@@ -104,7 +104,7 @@ class _RefundListApi extends ApiClient {
   _RefundListApi() : super(baseUrl: 'https://test.example.com');
 
   @override
-  Future<List<dynamic>> getList(String path) async {
+  Future<List<dynamic>> getAllPages(String path) async {
     return [
       {
         'id': 'rf-1',

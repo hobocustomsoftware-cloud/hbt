@@ -9,9 +9,11 @@ import 'package:http/http.dart' as http;
 /// original request is retried. If refresh fails, the caller receives
 /// an [ApiException] with the original 401 message.
 class ApiClient {
-  ApiClient({required this.baseUrl});
+  ApiClient({required this.baseUrl, http.Client? client})
+      : _clientOverride = client;
 
   final String baseUrl;
+  final http.Client? _clientOverride;
   String? accessToken;
 
   /// Callback to attempt token refresh.
@@ -27,6 +29,26 @@ class ApiClient {
 
   Future<List<dynamic>> getList(String path) =>
       _requestList('GET', path);
+
+  /// Fetch every page of a paginated list endpoint.
+  ///
+  /// DRF `PageNumberPagination` returns `{results: [...], next: <url>}`;
+  /// this follows `next` until exhausted so callers receive the complete
+  /// dataset (bare-array responses are returned unchanged). Absolute `next`
+  /// URLs are handled directly; relative paths are prefixed with [baseUrl].
+  /// Guarded against runaway loops (max 100 pages).
+  Future<List<dynamic>> getAllPages(String path) async {
+    final all = <dynamic>[];
+    var nextUrl = path;
+    var page = 0;
+    while (nextUrl.isNotEmpty && page < 100) {
+      final result = await _requestPage(nextUrl);
+      all.addAll(result.results);
+      nextUrl = result.next ?? '';
+      page++;
+    }
+    return all;
+  }
 
   Future<Map<String, dynamic>> put(
           String path, Map<String, dynamic> body) =>
@@ -232,6 +254,69 @@ class ApiClient {
     }
   }
 
+  /// Fetch one page, returning its items and the `next` URL (or null).
+  ///
+  /// Accepts an absolute URL (from a pagination `next` link) or a relative
+  /// path (prefixed with [baseUrl]). Handles paginated and bare-array
+  /// responses.
+  Future<({List<dynamic> results, String? next})> _requestPage(
+    String pathOrUrl,
+  ) async {
+    final uri = pathOrUrl.startsWith('http')
+        ? Uri.parse(pathOrUrl)
+        : Uri.parse('$baseUrl$pathOrUrl');
+    try {
+      final request = http.Request('GET', uri)
+        ..headers.addAll({
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        });
+      if (accessToken != null) {
+        request.headers['Authorization'] = 'Bearer $accessToken';
+      }
+      final client = _clientOverride ?? http.Client();
+      try {
+        final streamed = await client
+            .send(request)
+            .timeout(const Duration(seconds: 15));
+        final response = await http.Response.fromStream(streamed);
+        final text = response.body;
+        final raw = text.isEmpty ? <dynamic>[] : jsonDecode(text);
+        if (response.statusCode == 401 && !_refreshing) {
+          // Retry after refresh
+          return _handleRefreshPage(() => _requestPage(pathOrUrl));
+        }
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+          throw ApiException(
+              _apiErrorMessage(raw, response.statusCode));
+        }
+        if (raw is List<dynamic>) {
+          return (results: raw, next: null);
+        }
+        if (raw is Map<String, dynamic>) {
+          final results = raw['results'];
+          if (results is List<dynamic>) {
+            return (
+              results: results,
+              next: raw['next']?.toString(),
+            );
+          }
+        }
+        throw const ApiException('API response ပုံစံ မမှန်ပါ။');
+      } finally {
+        // Only close clients we created; injected clients are owned by the
+        // caller (tests reuse one instance across requests).
+        if (_clientOverride == null) client.close();
+      }
+    } on http.ClientException {
+      throw const ApiException('အင်တာနက်မရပါ။ ပြန်ချိတ်ပြီး ထပ်စမ်းပါ။');
+    } on UnsupportedError {
+      throw const ApiException('Server နှင့် ချိတ်ဆက်မရပါ။');
+    } on FormatException {
+      throw const ApiException('Server response ပုံစံ မမှန်ပါ။');
+    }
+  }
+
   /// Attempt a token refresh and retry the original list request.
   Future<List<dynamic>> _handleRefreshList(
     Future<List<dynamic>> Function() retry,
@@ -253,6 +338,29 @@ class ApiClient {
       throw ApiException('Session refresh failed: $e');
     }
   }
+
+  /// Attempt a token refresh and retry the original page request.
+  Future<({List<dynamic> results, String? next})> _handleRefreshPage(
+    Future<({List<dynamic> results, String? next})> Function() retry,
+  ) async {
+    if (onRefreshToken == null) {
+      throw const ApiException('Session expired. Please sign in again.');
+    }
+    _refreshing = true;
+    try {
+      final newToken = await onRefreshToken!();
+      accessToken = newToken;
+      _refreshing = false;
+      return retry();
+    } on ApiException {
+      _refreshing = false;
+      rethrow;
+    } catch (e) {
+      _refreshing = false;
+      throw ApiException('Session refresh failed: $e');
+    }
+  }
+
 
   String _apiErrorMessage(dynamic body, int status) {
     if (body is Map<String, dynamic>) {

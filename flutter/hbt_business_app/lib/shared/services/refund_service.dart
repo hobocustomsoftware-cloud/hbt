@@ -54,12 +54,12 @@ class RefundService {
 
   // ── Refund Requests ──────────────────────────────────────────────
 
-  /// List all refund requests for the active organization.
+  /// List all refund requests for the active organization (all pages).
   Future<List<Map<String, dynamic>>> list({String? status}) async {
     final path = status != null
         ? '/organizations/$_orgId/refunds/?status=$status'
         : '/organizations/$_orgId/refunds/';
-    final data = await _api.getList(path);
+    final data = await _api.getAllPages(path);
     return data.cast<Map<String, dynamic>>();
   }
 

@@ -1,66 +1,62 @@
-# Milestone Report — M5b-001 (F-19: Composite query indexes)
+# Milestone Report — M5b-002 (F-19: Client-side list pagination)
 
 **Date:** 2026-08-01 · **Status:** ✅ Complete
-**Commits:** (single commit, see below)
 
 ## Task ID
-**M5b-001** — F-19 (part 1): composite indexes for org+status+date query patterns (backend)
+**M5b-002** — F-19 (part 2): pagination on cargo/route/refund lists (Flutter business app)
 
 ## Objective
-Eliminate full-table scans on the two org-scoped hot models that had **no**
-composite indexes, closing the F-19 audit finding. Verification showed most
-models (Booking, Trip, CargoShipment, Route, Schedule, Vehicle, Branch,
-Feedback, SyncOperation) already had composite indexes from prior work; the
-audit claim was **partially stale** — only `Ticket` and `PaymentRecord` were
-genuinely missing them.
+The M3 backend change (DRF `PageNumberPagination`, page size 100) made all list
+endpoints paginated, but the Flutter business app read only the **first page**
+(`getList`/`data['results']`) — any record past 100 was silently invisible to
+counter staff. Fix: fetch all pages by following DRF `next` links.
 
 ## Files Changed
 | File | Change |
 |------|--------|
-| `backend/apps/ticketing/models.py` | Added `ticket_org_status_issued_idx` (organization, status, issued_at) to `Ticket.Meta.indexes` |
-| `backend/apps/ticketing/migrations/0003_ticket_ticket_org_status_issued_idx.py` | NEW — index migration |
-| `backend/apps/payments/models.py` | Added `payment_org_status_date_idx` (organization, status, created_at) to `PaymentRecord.Meta.indexes` |
-| `backend/apps/payments/migrations/0007_paymentrecord_payment_org_status_date_idx.py` | NEW — index migration |
-| `backend/apps/ticketing/tests/__init__.py` | NEW — test package marker (was missing; also fixes discovery for future ticketing tests) |
-| `backend/apps/ticketing/tests/test_composite_indexes.py` | NEW — 6 schema-contract tests |
+| `lib/shared/services/api_client.dart` | NEW `getAllPages()` — follows `next` until exhausted (bare-array passthrough, absolute-URL handling, 100-page guard, 401 refresh + retry); NEW `_requestPage()` + `_handleRefreshPage()`; constructor accepts optional injectable `http.Client` (testability, mirrors passenger app) |
+| `lib/features/cargo/screens/cargo_worklist_page.dart` | `getList` → `getAllPages` for shipments |
+| `lib/features/routes/screens/route_list_page.dart` | `get` + manual `results` read → `getAllPages` |
+| `lib/shared/services/refund_service.dart` | `list()` → `getAllPages` |
+| `test/shared/api_client_pagination_test.dart` | NEW — 5 tests |
+| `test/features/refund/refund_service_test.dart` | Mock now overrides `getAllPages` |
+| `test/features/refund/refund_list_widget_test.dart` | 4 mocks now override `getAllPages` |
+| `test/features/refund/refund_full_flow_test.dart` | Mock now overrides `getAllPages` |
 
 ## Tests Added
-- 6 new tests (`apps/ticketing/tests/test_composite_indexes.py`):
-  - Ticket model declares the index; index columns exist in the DB (SQLite/PG-aware)
-  - Ticket org+status query pattern executes
-  - PaymentRecord model declares the index; index columns exist in the DB
-  - PaymentRecord org+status query pattern executes
-- Backend suite: **118 → 124, all OK** (index migrations apply cleanly)
+- 5 new unit tests (`api_client_pagination_test.dart`): multi-page follow,
+  bare-array passthrough, single-page, error propagation, 401→refresh→retry
+- Existing refund service/widget/flow mocks updated to the new contract
+- Business suite: **66 → 71, all OK**; `flutter analyze` clean
 
 ## Breaking Changes
-**None.** Indexes are additive schema changes; no column/table/API/behavior
-changes. Django generates forward-only index migrations.
+**None for callers of the public API.** `ApiClient` constructor gained an
+optional `client` param (default = real network, unchanged behavior). Existing
+`getList`/`get` untouched. The internal behavior change (lists now load all
+pages instead of page 1) is the intended fix, not a regression.
 
 ## Rollback
-`git revert <commit>` — reverts both index migrations and the model changes.
-Indexes can also be dropped independently:
-`python manage.py migrate ticketing 0002` + `migrate payments 0006`.
+`git revert <commit>`. Screens revert to page-1-only reads; the new methods
+become unused dead code but nothing else breaks.
 
 ## Remaining Tasks
-- **M5b-002** — F-19 (part 2): pagination on cargo/route/refund lists (Flutter business app)
 - **M5b-003** — F-23: dead shared widgets / unused routes.dart / features/business rename
 - **M5c-001** — F-24: business-app test coverage expansion
-- **M5c-002** — F-26: trip-search optimization (server-side filtering)
-- **M5c-003** — F-25: localization (EN baseline + MM)
-- **F-18b / F-09b** — vendor crash SDK (needs DSN) / cert pinning (needs build infra) — externally blocked
-- Final: full production audit → `docs/review/final_production_audit.md`
+- **M5c-002** — F-26: trip-search optimization
+- **M5c-003** — F-25: localization
+- **F-18b / F-09b** — vendor crash SDK (needs DSN) / cert pinning (needs build infra)
+- Final: production audit → `docs/review/final_production_audit.md`
 
 ## Production Readiness Score
-**~67/100** (up from ~65; backend query-path hardening adds +2)
+**~68/100** (up from ~67; counter staff can now see full cargo/route/refund data)
 
 | Area | Score | Note |
 |------|-------|------|
-| Booking integrity | 75 | Unchanged (M0) |
-| Offline | 65 | Unchanged (M2+M4) |
-| Security | 72 | Unchanged (M5a idle guard; pinning still open) |
-| Ops | **77** | +2 — hot org+status+date queries now indexed |
+| Booking integrity | 75 | Unchanged |
+| Offline | 65 | Unchanged |
+| Security | 72 | Unchanged |
+| Ops | **78** | +1 — pagination complete end-to-end (backend M3 + client M5b-002) |
 | Architecture | 55 | Unchanged |
-| **Overall** | **~67** | |
+| **Overall** | **~68** | |
 
-*Note: scores are estimates based on milestone completion against the three
-original audits, not a fresh audit.*
+*Estimates based on milestone completion against the three original audits.*

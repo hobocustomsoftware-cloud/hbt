@@ -37,6 +37,14 @@ class RefundFullFlowMockApi extends ApiClient {
   }
 
   @override
+  Future<List<dynamic>> getAllPages(String path) async {
+    callLog.add('GET LIST $path');
+    final result = _getListResults[path];
+    if (result != null) return result;
+    throw ApiException('Not found: $path');
+  }
+
+  @override
   Future<Map<String, dynamic>> post(
       String path, Map<String, dynamic> body) async {
     callLog.add('POST $path');
