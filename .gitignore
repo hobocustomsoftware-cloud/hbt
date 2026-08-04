@@ -1,0 +1,17 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# pip-audit cache
+backend/.cache/
+.cache/
+
+# Virtual environments
+venv/
+.venv/
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
