@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_theme.dart';
+import '../theme/hbt_tokens.dart';
 
 // =============================================================================
-//  ERROR & STATUS STATE WIDGETS
+//  ERROR & STATUS STATE WIDGETS (design-system re-skin, W1-001)
 // =============================================================================
+//
+// Canonical error/status components. LoadingView / EmptyView / EmptyListTileCard /
+// InlineLoading / skeleton components live in async_views.dart (canonical home);
+// this file re-exports are consumed there via `export`.
+//
+// AppTheme (teal) removed — all styling comes from HbtTokens/HbtTheme.
 
 /// Full-screen error display with icon, message, and retry button.
 ///
@@ -26,22 +32,22 @@ class ErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Center(
         child: Padding(
-          padding: const EdgeInsets.all(AppTheme.spacingXxl),
+          padding: const EdgeInsets.all(HbtSpacing.xxl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 icon ?? Icons.error_outline,
-                size: AppTheme.iconLg,
+                size: HbtIconSize.lg,
                 color: Theme.of(context).colorScheme.error,
               ),
-              const SizedBox(height: AppTheme.spacingMd),
+              const SizedBox(height: HbtSpacing.md),
               Text(
                 message,
                 textAlign: TextAlign.center,
-                style: AppTheme.dataValueStyle(context),
+                style: HbtTypography.bodyStrong,
               ),
-              const SizedBox(height: AppTheme.spacingMd),
+              const SizedBox(height: HbtSpacing.md),
               FilledButton(
                 onPressed: onRetry,
                 child: Text(retryLabel),
@@ -74,14 +80,14 @@ class ErrorCard extends StatelessWidget {
     return Card(
       color: cs.errorContainer,
       child: Padding(
-        padding: const EdgeInsets.all(AppTheme.spacingMd),
+        padding: const EdgeInsets.all(HbtSpacing.md),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(Icons.error_outline,
-                size: AppTheme.iconSm,
+                size: HbtIconSize.sm,
                 color: cs.onErrorContainer),
-            const SizedBox(width: AppTheme.spacingSm),
+            const SizedBox(width: HbtSpacing.sm),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,7 +97,7 @@ class ErrorCard extends StatelessWidget {
                     style: TextStyle(color: cs.onErrorContainer),
                   ),
                   if (actionLabel != null && onAction != null) ...[
-                    const SizedBox(height: AppTheme.spacingSm),
+                    const SizedBox(height: HbtSpacing.sm),
                     TextButton(
                       style: TextButton.styleFrom(
                         foregroundColor: cs.onErrorContainer,
@@ -132,14 +138,14 @@ class WarningCard extends StatelessWidget {
     return Card(
       color: cs.tertiaryContainer,
       child: Padding(
-        padding: const EdgeInsets.all(AppTheme.spacingMd),
+        padding: const EdgeInsets.all(HbtSpacing.md),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(Icons.warning_amber_rounded,
-                size: AppTheme.iconSm,
+                size: HbtIconSize.sm,
                 color: cs.onTertiaryContainer),
-            const SizedBox(width: AppTheme.spacingSm),
+            const SizedBox(width: HbtSpacing.sm),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,7 +155,7 @@ class WarningCard extends StatelessWidget {
                     style: TextStyle(color: cs.onTertiaryContainer),
                   ),
                   if (actionLabel != null && onAction != null) ...[
-                    const SizedBox(height: AppTheme.spacingSm),
+                    const SizedBox(height: HbtSpacing.sm),
                     TextButton(
                       style: TextButton.styleFrom(
                         foregroundColor: cs.onTertiaryContainer,
@@ -217,7 +223,7 @@ class Toast {
           message,
           style: const TextStyle(color: Colors.white),
         ),
-        backgroundColor: color,
+        backgroundColor: color ?? HbtColors.secondary,
       ),
     );
   }
@@ -272,17 +278,17 @@ class ValidationError extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(
-          left: AppTheme.spacingMd,
-          top: AppTheme.spacingXs,
+          left: HbtSpacing.md,
+          top: HbtSpacing.xs,
         ),
         child: Row(
           children: [
             Icon(
               Icons.error_outline,
-              size: AppTheme.iconSm - 2,
+              size: HbtIconSize.sm - 2,
               color: Theme.of(context).colorScheme.error,
             ),
-            const SizedBox(width: AppTheme.spacingXs),
+            const SizedBox(width: HbtSpacing.xs),
             Text(
               message,
               style: TextStyle(
@@ -300,7 +306,7 @@ class RetryButton extends StatelessWidget {
   const RetryButton({
     super.key,
     required this.onRetry,
-    this.label = 'ထပ်မံကြိုးစားရန်',
+    this.label = 'ပြန်ကြိုးစားမည်',
     this.busy = false,
   });
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_theme.dart';
+import '../theme/hbt_tokens.dart';
 
 // =============================================================================
 //  BUTTON VARIANTS
@@ -71,12 +71,12 @@ class BusyButton extends StatelessWidget {
     if (expanded) {
       return SizedBox(
         width: double.infinity,
-        height: height ?? AppTheme.minButtonHeight,
+        height: height ?? HbtSize.minButtonHeight,
         child: button,
       );
     }
     return SizedBox(
-      height: height ?? AppTheme.minButtonHeight,
+      height: height ?? HbtSize.minButtonHeight,
       child: button,
     );
   }
@@ -130,7 +130,7 @@ class ActionButtonRow extends StatelessWidget {
     this.primaryIcon,
     this.secondaryIcon,
     this.secondaryDanger = false,
-    this.spacing = AppTheme.spacingMd,
+    this.spacing = HbtSpacing.md,
   });
 
   final String primaryLabel;
@@ -150,7 +150,7 @@ class ActionButtonRow extends StatelessWidget {
           if (secondaryLabel != null) ...[
             Expanded(
               child: SizedBox(
-                height: AppTheme.minButtonHeight,
+                height: HbtSize.minButtonHeight,
                 child: secondaryDanger
                     ? OutlinedButton.icon(
                         style: OutlinedButton.styleFrom(
@@ -195,7 +195,7 @@ class ActionButtonRow extends StatelessWidget {
           ],
           Expanded(
             child: SizedBox(
-              height: AppTheme.minButtonHeight,
+              height: HbtSize.minButtonHeight,
               child: FilledButton.icon(
                 onPressed: primaryBusy ? null : primaryOnPressed,
                 icon: primaryBusy
@@ -295,7 +295,7 @@ class PermissionedButton extends StatelessWidget {
           ),
         PermissionedButtonVariant.outlined => SizedBox(
             width: expanded ? double.infinity : null,
-            height: AppTheme.minButtonHeight,
+            height: HbtSize.minButtonHeight,
             child: OutlinedButton(
               onPressed: null,
               child: Text(disabledLabel!),
@@ -317,7 +317,7 @@ class PermissionedButton extends StatelessWidget {
         ),
       PermissionedButtonVariant.outlined => SizedBox(
           width: expanded ? double.infinity : null,
-          height: AppTheme.minButtonHeight,
+          height: HbtSize.minButtonHeight,
           child: OutlinedButton.icon(
             onPressed: busy ? null : onPressed,
             icon: icon,

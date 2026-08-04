@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
-/// A colored [Chip] for displaying status labels consistently.
+import '../theme/hbt_tokens.dart';
+
+/// A colored [Chip] for displaying status labels consistently (W1-001).
 ///
-/// Merges the 4 separate `_statusColor()` maps into one shared truth.
-///
-/// Colors are mapped from status string → color. Any unrecognised status
-/// defaults to grey.
+/// Design-system version: semantic colors ONLY (success/warning/danger/info +
+/// neutral), tinted container + colored dot + readable label — no random
+/// colors (theme_guidelines §4). Any unrecognised status defaults to neutral.
 class StatusChip extends StatelessWidget {
   const StatusChip({
     super.key,
@@ -16,53 +17,82 @@ class StatusChip extends StatelessWidget {
   final String status;
   final Map<String, Color>? customColors;
 
-  /// Default color map covering trip, route, ticket, and cargo statuses.
+  /// Default color map covering trip, route, ticket, and cargo statuses —
+  /// mapped to the four semantic tokens + neutral.
   static const Map<String, Color> defaultColors = {
     // Route statuses
-    'active': Colors.green,
-    'draft': Colors.grey,
-    'approved': Colors.blue,
-    'suspended': Colors.orange,
-    'retired': Colors.red,
-    'archived': Colors.red,
+    'active': HbtColors.success,
+    'draft': HbtColors.neutral,
+    'approved': HbtColors.info,
+    'suspended': HbtColors.warning,
+    'retired': HbtColors.danger,
+    'archived': HbtColors.danger,
     // Trip statuses
-    'planned': Colors.grey,
-    'ready': Colors.blue,
-    'boarding': Colors.orange,
-    'departed': Colors.amber,
-    'in_progress': Colors.teal,
-    'delayed': Colors.red,
-    'interrupted': Colors.deepOrange,
-    'arrived': Colors.green,
-    'completed': Colors.green,
-    'closed': Colors.grey,
-    'cancelled': Colors.red,
+    'planned': HbtColors.neutral,
+    'ready': HbtColors.info,
+    'boarding': HbtColors.warning,
+    'departed': HbtColors.warning,
+    'in_progress': HbtColors.info,
+    'delayed': HbtColors.danger,
+    'interrupted': HbtColors.danger,
+    'arrived': HbtColors.success,
+    'completed': HbtColors.success,
+    'closed': HbtColors.neutral,
+    'cancelled': HbtColors.danger,
     // Ticket statuses
-    'issued': Colors.blue,
-    'validated': Colors.green,
-    'boarded': Colors.teal,
-    'reissued': Colors.orange,
+    'issued': HbtColors.info,
+    'validated': HbtColors.success,
+    'boarded': HbtColors.info,
+    'reissued': HbtColors.warning,
     // Cargo statuses
-    'accepted': Colors.blue,
-    'assigned': Colors.indigo,
-    'loaded': Colors.amber,
-    'in_transit': Colors.teal,
-    'ready_pickup': Colors.orange,
-    'handed_over': Colors.green,
+    'accepted': HbtColors.info,
+    'assigned': HbtColors.info,
+    'loaded': HbtColors.warning,
+    'in_transit': HbtColors.info,
+    'ready_pickup': HbtColors.warning,
+    'handed_over': HbtColors.success,
+    // Shift / settlement
+    'open': HbtColors.success,
+    'closed_ok': HbtColors.success,
+    'difference': HbtColors.warning,
   };
 
-  Color get _color => (customColors ?? defaultColors)[status] ?? Colors.grey;
+  Color get _color => (customColors ?? defaultColors)[status] ?? HbtColors.neutral;
 
   @override
-  Widget build(BuildContext context) => Chip(
-        label: Text(
-          status.replaceAll('_', ' '),
-          style: const TextStyle(fontSize: 11, color: Colors.white),
-        ),
-        backgroundColor: _color,
-        padding: EdgeInsets.zero,
-        visualDensity: VisualDensity.compact,
-      );
+  Widget build(BuildContext context) {
+    final color = _color;
+    final label = status.replaceAll('_', ' ');
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: HbtSpacing.sm,
+        vertical: 4,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(HbtRadius.pill),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// A [CircleAvatar] colored by status, used as leading icon in list tiles.
@@ -79,11 +109,14 @@ class StatusAvatar extends StatelessWidget {
   final Map<String, Color>? customColors;
 
   Color get _color =>
-      (customColors ?? StatusChip.defaultColors)[status] ?? Colors.grey;
+      (customColors ?? StatusChip.defaultColors)[status] ?? HbtColors.neutral;
 
   @override
-  Widget build(BuildContext context) => CircleAvatar(
-        backgroundColor: _color.withAlpha(40),
-        child: Icon(icon, color: _color),
-      );
+  Widget build(BuildContext context) {
+    final color = _color;
+    return CircleAvatar(
+      backgroundColor: color.withValues(alpha: 0.12),
+      child: Icon(icon, color: color),
+    );
+  }
 }

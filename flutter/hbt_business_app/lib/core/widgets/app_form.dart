@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_theme.dart';
+import '../theme/hbt_tokens.dart';
 
 // =============================================================================
 //  FORM FIELD WIDGETS
@@ -50,7 +50,7 @@ class FormTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: AppTheme.formFieldPadding,
+        padding: _formFieldPadding,
         child: TextFormField(
           controller: controller,
           onChanged: onChanged,
@@ -116,7 +116,7 @@ class FormDropdown<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: AppTheme.formFieldPadding,
+        padding: _formFieldPadding,
         child: DropdownButtonFormField<T>(
           key: useKey ? ValueKey(value.hashCode) : null,
           initialValue: value,
@@ -149,8 +149,8 @@ class ChoiceChipGroup<T> extends StatelessWidget {
     required this.selected,
     this.onChanged,
     this.available,
-    this.wrapSpacing = AppTheme.spacingSm,
-    this.wrapRunSpacing = AppTheme.spacingXs,
+    this.wrapSpacing = HbtSpacing.sm,
+    this.wrapRunSpacing = HbtSpacing.xs,
     this.showLabel = true,
   });
 
@@ -170,9 +170,9 @@ class ChoiceChipGroup<T> extends StatelessWidget {
         children: [
           if (showLabel)
             Padding(
-              padding: const EdgeInsets.only(bottom: AppTheme.spacingSm),
+              padding: const EdgeInsets.only(bottom: HbtSpacing.sm),
               child: Text(label,
-                  style: AppTheme.sectionHeaderStyle(context)),
+                  style: HbtTypography.title),
             ),
           Wrap(
             spacing: wrapSpacing,
@@ -223,7 +223,7 @@ class ContactPickerRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: AppTheme.formFieldPadding,
+        padding: _formFieldPadding,
         child: Row(
           children: [
             Expanded(
@@ -251,7 +251,7 @@ class ContactPickerRow extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: AppTheme.spacingSm),
+            const SizedBox(width: HbtSpacing.sm),
             IconButton(
               onPressed: onCreate,
               icon: const Icon(Icons.person_add),
@@ -289,7 +289,7 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: padding ?? AppTheme.sectionPadding,
+        padding: padding ?? _sectionPadding,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -299,15 +299,15 @@ class SectionHeader extends StatelessWidget {
                 children: [
                   Text(
                     label,
-                    style: AppTheme.sectionHeaderStyle(context),
+                    style: HbtTypography.title,
                   ),
                   if (subtitle != null)
                     Padding(
                       padding:
-                          const EdgeInsets.only(top: AppTheme.spacingXxs),
+                          const EdgeInsets.only(top: HbtSpacing.xxs),
                       child: Text(
                         subtitle!,
-                        style: AppTheme.sectionSubtitleStyle(context),
+                        style: _subtitleStyle(context),
                       ),
                     ),
                 ],
@@ -336,7 +336,7 @@ class InlineSectionHeader extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: AppTheme.sectionHeaderStyle(context),
+              style: HbtTypography.title,
             ),
           ),
           ?action,
@@ -359,7 +359,7 @@ class FormRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingSm),
+        padding: const EdgeInsets.symmetric(vertical: HbtSpacing.sm),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -369,7 +369,7 @@ class FormRow extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 12),
                 child: Text(
                   '$label:',
-                  style: AppTheme.dataLabelStyle(context),
+                  style: _subtitleStyle(context),
                 ),
               ),
             ),
@@ -378,3 +378,18 @@ class FormRow extends StatelessWidget {
         ),
       );
 }
+
+/// Local caption style for labels/subtitles (design tokens).
+TextStyle _subtitleStyle(BuildContext context) => HbtTypography.caption.copyWith(
+  color: Theme.of(context).colorScheme.onSurfaceVariant,
+);
+
+const _formFieldPadding = EdgeInsets.symmetric(
+  horizontal: HbtSpacing.md,
+  vertical: HbtSpacing.xs,
+);
+
+const _sectionPadding = EdgeInsets.symmetric(
+  vertical: HbtSpacing.sm,
+  horizontal: HbtSpacing.lg,
+);

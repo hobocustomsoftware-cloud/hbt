@@ -1,200 +1,109 @@
 import 'package:flutter/material.dart';
 
-/// Centralised design tokens and theme configuration for the HBT Business App.
+import 'hbt_theme.dart';
+import 'hbt_tokens.dart';
+
+/// Legacy AppTheme — now a **compatibility shim over the HBT design system**
+/// (W1-001). Every value delegates to HbtTokens / HbtTheme so feature screens
+/// that still reference `AppTheme.*` instantly adopt the official brand
+/// (#AA0000 / #151515) without individual edits.
 ///
-/// ## Usage
-/// ```dart
-/// AppTheme.spacingMd                   // 12.0
-/// AppTheme.radiusMd                     // 12.0
-/// AppTheme.sectionHeaderStyle(context)  // themed titleMedium
-/// ```
-///
-/// All spacing values should come from here — no raw literals.
+/// New code should use HbtTokens / HbtTypography / HbtTheme directly; this
+/// shim exists only to keep older screens compiling and is scheduled for
+/// removal once all screens migrate (tracked per wave).
 class AppTheme {
   AppTheme._();
 
-  // ── Spacing ──────────────────────────────────────────────────────
-  static const double spacingXxs = 2;
-  static const double spacingXs = 4;
-  static const double spacingSm = 8;
-  static const double spacingMd = 12;
-  static const double spacingLg = 16;
-  static const double spacingXl = 20;
-  static const double spacingXxl = 24;
-  static const double spacingXxxl = 32;
-  static const double spacingXxxxl = 48;
+  // ── Spacing (delegates to HbtSpacing) ────────────────────────────────
+  static const double spacingXxs = HbtSpacing.xxs;
+  static const double spacingXs = HbtSpacing.xs;
+  static const double spacingSm = HbtSpacing.sm;
+  static const double spacingMd = HbtSpacing.md;
+  static const double spacingLg = HbtSpacing.lg;
+  static const double spacingXl = HbtSpacing.xl;
+  static const double spacingXxl = HbtSpacing.xxl;
+  static const double spacingXxxl = HbtSpacing.xxxl;
+  static const double spacingXxxxl = HbtSpacing.xxxxl;
 
-  // ── Padding helpers ──────────────────────────────────────────────
-  static const EdgeInsets pagePadding = EdgeInsets.all(spacingLg);
-  static const EdgeInsets cardPadding = EdgeInsets.all(spacingLg);
-  static const EdgeInsets listPadding = EdgeInsets.all(spacingMd);
+  // ── Padding helpers ──────────────────────────────────────────────────
+  static const EdgeInsets pagePadding = HbtSpacing.pageMobile;
+  static const EdgeInsets cardPadding = HbtSpacing.cardPadding;
+  static const EdgeInsets listPadding = EdgeInsets.all(HbtSpacing.md);
   static const EdgeInsets formFieldPadding =
-      EdgeInsets.symmetric(vertical: spacingSm);
+      EdgeInsets.symmetric(vertical: HbtSpacing.sm);
   static const EdgeInsets sectionPadding =
-      EdgeInsets.only(top: spacingXl, bottom: spacingSm);
+      EdgeInsets.only(top: HbtSpacing.xl, bottom: HbtSpacing.sm);
 
-  // ── Border radius ────────────────────────────────────────────────
-  static const double radiusXs = 4;
-  static const double radiusSm = 8;
-  static const double radiusMd = 12;
-  static const double radiusLg = 16;
-  static const double radiusXl = 24;
+  // ── Border radius (delegates to HbtRadius) ───────────────────────────
+  static const double radiusXs = HbtRadius.xs;
+  static const double radiusSm = HbtRadius.sm;
+  static const double radiusMd = HbtRadius.md;
+  static const double radiusLg = HbtRadius.lg;
+  static const double radiusXl = HbtRadius.xl;
 
-  // ── Icon sizes ───────────────────────────────────────────────────
-  static const double iconSm = 18;
-  static const double iconMd = 24;
-  static const double iconLg = 48;
-  static const double iconXl = 64;
+  // ── Icon sizes ───────────────────────────────────────────────────────
+  static const double iconSm = HbtIconSize.sm;
+  static const double iconMd = HbtIconSize.md;
+  static const double iconLg = HbtIconSize.lg;
+  static const double iconXl = HbtIconSize.xl;
 
-  // ── Sizing constraints ───────────────────────────────────────────
-  static const double maxFormWidth = 420;
-  static const double minButtonHeight = 48;
-  static const double chipHeight = 32;
+  // ── Sizing constraints ───────────────────────────────────────────────
+  static const double maxFormWidth = HbtSize.maxFormWidth;
+  static const double minButtonHeight = HbtSize.minButtonHeight;
+  static const double chipHeight = HbtSize.chipHeight;
 
-  // ── Duration / animation ─────────────────────────────────────────
-  static const Duration fastDuration = Duration(milliseconds: 150);
-  static const Duration mediumDuration = Duration(milliseconds: 300);
-  static const Duration slowDuration = Duration(milliseconds: 600);
+  // ── Duration / animation ─────────────────────────────────────────────
+  static const Duration fastDuration = HbtMotion.fast;
+  static const Duration mediumDuration = HbtMotion.normal;
+  static const Duration slowDuration = HbtMotion.slow;
 
-  // ── Typography helpers ───────────────────────────────────────────
+  // ── Typography helpers (design-system styles) ────────────────────────
   static TextStyle sectionHeaderStyle(BuildContext context) =>
-      Theme.of(context).textTheme.titleMedium ??
-      const TextStyle(fontSize: 16, fontWeight: FontWeight.w600);
+      HbtTypography.title;
 
   static TextStyle sectionSubtitleStyle(BuildContext context) =>
-      Theme.of(context).textTheme.bodySmall ??
-      const TextStyle(fontSize: 12, color: Colors.grey);
+      HbtTypography.caption.copyWith(
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      );
 
   static TextStyle cardTitleStyle(BuildContext context) =>
-      Theme.of(context).textTheme.titleSmall ??
-      const TextStyle(fontSize: 14, fontWeight: FontWeight.w600);
+      HbtTypography.bodyStrong;
 
   static TextStyle dataLabelStyle(BuildContext context) =>
-      Theme.of(context).textTheme.bodySmall?.copyWith(
-            fontWeight: FontWeight.w500,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ) ??
-      const TextStyle(fontSize: 12, fontWeight: FontWeight.w500);
+      HbtTypography.caption.copyWith(
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      );
 
   static TextStyle dataValueStyle(BuildContext context) =>
-      Theme.of(context).textTheme.bodyMedium ??
-      const TextStyle(fontSize: 14);
+      HbtTypography.bodyStrong;
 
   static TextStyle monoStyle(BuildContext context) =>
-      Theme.of(context).textTheme.bodySmall?.copyWith(
-            fontFamily: 'monospace',
-          ) ??
-      const TextStyle(fontSize: 12, fontFamily: 'monospace');
+      HbtTypography.caption.copyWith(fontFamily: 'monospace');
 
-  // ── Status colour helpers ────────────────────────────────────────
+  // ── Status colour helper (semantic tokens only — no random colors) ──
+  static Color statusColor(BuildContext context, String status) =>
+      switch (status) {
+        'active' || 'approved' || 'confirmed' || 'completed' || 'arrived' ||
+        'handed_over' || 'paid' =>
+          HbtColors.success,
+        'ready' || 'boarding' || 'issued' || 'validated' || 'boarded' =>
+          HbtColors.info,
+        'departed' || 'in_progress' || 'in_transit' || 'loaded' ||
+        'requested' =>
+          HbtColors.warning,
+        'draft' || 'planned' => HbtColors.neutral,
+        'suspended' || 'delayed' || 'ready_pickup' => HbtColors.warning,
+        'retired' || 'archived' || 'cancelled' || 'rejected' =>
+          HbtColors.danger,
+        _ => HbtColors.neutral,
+      };
 
-  /// Returns a colour for the given status string based on M3 colour tokens.
-  static Color statusColor(BuildContext context, String status) {
-    final cs = Theme.of(context).colorScheme;
-    return switch (status) {
-      'active' || 'approved' || 'confirmed' || 'completed' || 'arrived' ||
-      'handed_over' =>
-        cs.primary,
-      'ready' || 'boarding' || 'issued' || 'validated' || 'boarded' =>
-        cs.tertiary,
-      'departed' || 'in_progress' || 'in_transit' || 'loaded' =>
-        cs.secondary,
-      'draft' || 'planned' => cs.outline,
-      'suspended' || 'delayed' || 'ready_pickup' => cs.errorContainer,
-      'retired' || 'archived' || 'cancelled' || 'rejected' =>
-        cs.error.withAlpha(180),
-      'requested' => cs.tertiaryContainer,
-      'paid' => cs.primaryContainer,
-      _ => cs.outline,
-    };
-  }
-
-  // ── Build a Material 3 ThemeData from seed ───────────────────────
-
-  static ThemeData buildTheme({Color? seedColor}) {
-    final cs = ColorScheme.fromSeed(
-      seedColor: seedColor ?? const Color(0xff00695c),
-    );
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: cs,
-      // ── Component theme defaults ───────────────────────────
-      filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          minimumSize: const Size(0, minButtonHeight),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(radiusSm),
-          ),
-        ),
-      ),
-      outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          minimumSize: const Size(0, minButtonHeight),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(radiusSm),
-          ),
-        ),
-      ),
-      textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          minimumSize: const Size(0, 36),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(radiusSm),
-          ),
-        ),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(radiusSm),
-        ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: spacingMd, vertical: 14),
-        filled: true,
-        fillColor: cs.surfaceContainerHighest,
-      ),
-      cardTheme: CardThemeData(
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(radiusMd),
-          side: BorderSide(color: cs.outlineVariant, width: 1),
-        ),
-        clipBehavior: Clip.antiAlias,
-      ),
-      chipTheme: ChipThemeData(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(radiusSm),
-        ),
-      ),
-      appBarTheme: AppBarTheme(
-        centerTitle: true,
-        elevation: 0,
-        scrolledUnderElevation: 1,
-      ),
-      navigationBarTheme: NavigationBarThemeData(
-        elevation: 1,
-        indicatorShape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(radiusMd),
-        ),
-      ),
-      dividerTheme: DividerThemeData(
-        color: cs.outlineVariant,
-        thickness: 1,
-        space: spacingLg,
-      ),
-      snackBarTheme: SnackBarThemeData(
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(radiusSm),
-        ),
-      ),
-    );
-  }
+  // ── Theme builder: now returns the official HBT theme (no teal seed) ──
+  static ThemeData buildTheme({Color? seedColor}) =>
+      HbtTheme.light(primaryOverride: seedColor);
 }
 
-/// App-level typography presets for headings, labels, and mono text.
-///
-/// These are fallback styles for when theme-based styles are not sufficient.
-/// Prefer `Theme.of(context).textTheme.*` where possible.
+/// App-level typography presets (fallbacks). Colours now come from tokens.
 class AppTypography {
   AppTypography._();
 
@@ -215,12 +124,12 @@ class AppTypography {
 
   static const TextStyle label = TextStyle(
     fontWeight: FontWeight.w500,
-    color: Colors.grey,
+    color: HbtColors.neutral,
   );
 
   static const TextStyle body = TextStyle(
     fontSize: 14,
-    color: Colors.grey,
+    color: HbtColors.neutral,
   );
 
   static const TextStyle mono = TextStyle(

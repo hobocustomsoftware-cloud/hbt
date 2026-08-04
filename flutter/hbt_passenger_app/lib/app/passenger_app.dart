@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/auth/auth_controller.dart';
 import '../core/config/app_config.dart';
 import '../core/network/connectivity_monitor.dart';
-import '../core/theme/app_theme.dart';
+import '../core/theme/hbt_theme.dart';
 import '../features/splash/presentation/splash_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/registration_screen.dart';
@@ -103,7 +103,7 @@ class _PassengerAppState extends State<PassengerApp> {
   Widget build(BuildContext context) => MaterialApp(
         title: 'HBT Passenger',
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.light,
+        theme: HbtTheme.light(),
         builder: (context, child) => Listener(
           behavior: HitTestBehavior.translucent,
           onPointerDown: (_) => _idle.registerActivity(),

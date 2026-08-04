@@ -46,6 +46,8 @@ class HbtAdaptiveScaffold extends StatefulWidget {
     this.sidebarCollapsed,
     this.onSidebarCollapsedChanged,
     this.leading,
+    this.trailingActions = const [],
+    this.drawerFooter = const [],
   });
 
   final List<HbtNavItem> navItems;
@@ -62,6 +64,14 @@ class HbtAdaptiveScaffold extends StatefulWidget {
   final bool? sidebarCollapsed;
   final ValueChanged<bool>? onSidebarCollapsedChanged;
   final Widget? leading;
+
+  /// Extra top-bar actions (desktop/tablet) rendered before notifications.
+  /// On mobile only the first entry is shown (in the app bar); the rest are
+  /// expected to be reachable via the body / quick actions.
+  final List<Widget> trailingActions;
+
+  /// Extra drawer entries (mobile only) rendered after nav items.
+  final List<Widget> drawerFooter;
 
   @override
   State<HbtAdaptiveScaffold> createState() => _HbtAdaptiveScaffoldState();
@@ -114,6 +124,7 @@ class _HbtAdaptiveScaffoldState extends State<HbtAdaptiveScaffold> {
                 userName: widget.userName,
                 userAvatar: widget.userAvatar,
                 onProfileTap: widget.onProfileTap,
+                trailingActions: widget.trailingActions,
               ),
               Expanded(child: widget.body),
             ],
@@ -160,6 +171,7 @@ class _HbtAdaptiveScaffoldState extends State<HbtAdaptiveScaffold> {
                 userName: widget.userName,
                 userAvatar: widget.userAvatar,
                 onProfileTap: widget.onProfileTap,
+                trailingActions: widget.trailingActions,
               ),
               Expanded(child: widget.body),
             ],
@@ -193,6 +205,8 @@ class _HbtAdaptiveScaffoldState extends State<HbtAdaptiveScaffold> {
               tooltip: 'Search',
               onPressed: () {},
             ),
+          if (widget.trailingActions.isNotEmpty)
+            widget.trailingActions.first,
           IconButton(
             icon: Badge(
               isLabelVisible: widget.notificationCount > 0,
@@ -234,6 +248,10 @@ class _HbtAdaptiveScaffoldState extends State<HbtAdaptiveScaffold> {
                 selected: item.id == widget.currentNavId,
                 onTap: () => widget.onNavSelected(item.id),
               ),
+            if (widget.drawerFooter.isNotEmpty) ...[
+              const Divider(),
+              ...widget.drawerFooter,
+            ],
           ],
         ),
       ),
@@ -280,8 +298,9 @@ class _Sidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Dark brand sidebar (#151515) in BOTH themes (theme_guidelines §2).
     return Material(
-      color: Theme.of(context).colorScheme.surface,
+      color: HbtColors.secondary,
       child: SafeArea(
         child: Column(
           children: [
@@ -308,6 +327,7 @@ class _Sidebar extends StatelessWidget {
                         'HBT Business',
                         style: HbtTypography.title.copyWith(
                           fontWeight: FontWeight.w700,
+                          color: Colors.white,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -316,7 +336,7 @@ class _Sidebar extends StatelessWidget {
                 ],
               ),
             ),
-            const Divider(),
+            const Divider(color: Colors.white24),
             // Nav items
             Expanded(
               child: ListView(
@@ -336,11 +356,12 @@ class _Sidebar extends StatelessWidget {
                 ],
               ),
             ),
-            const Divider(),
+            const Divider(color: Colors.white24),
             // Collapse toggle
             IconButton(
               tooltip: collapsed ? 'Expand' : 'Collapse',
               onPressed: onToggleCollapse,
+              color: Colors.white70,
               icon: Icon(
                 collapsed
                     ? Icons.chevron_right
@@ -370,13 +391,11 @@ class _SidebarItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    // Active item: solid brand pill + white text (theme_guidelines §2).
     return Tooltip(
       message: collapsed ? item.label : '',
       child: Material(
-        color: selected
-            ? scheme.primary.withValues(alpha: 0.12)
-            : Colors.transparent,
+        color: selected ? HbtColors.primary : Colors.transparent,
         borderRadius: BorderRadius.circular(HbtRadius.sm),
         child: InkWell(
           borderRadius: BorderRadius.circular(HbtRadius.sm),
@@ -391,7 +410,7 @@ class _SidebarItem extends StatelessWidget {
               children: [
                 Icon(
                   item.selectedIcon ?? item.icon,
-                  color: selected ? scheme.primary : scheme.onSurfaceVariant,
+                  color: selected ? Colors.white : HbtColors.textSecondaryDark,
                   size: 22,
                 ),
                 if (!collapsed) ...[
@@ -401,8 +420,8 @@ class _SidebarItem extends StatelessWidget {
                       item.label,
                       style: HbtTypography.body.copyWith(
                         color: selected
-                            ? scheme.primary
-                            : scheme.onSurfaceVariant,
+                            ? Colors.white
+                            : HbtColors.textSecondaryDark,
                         fontWeight:
                             selected ? FontWeight.w600 : FontWeight.w400,
                       ),
@@ -414,13 +433,17 @@ class _SidebarItem extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: scheme.primary,
+                        color: selected
+                            ? Colors.white
+                            : HbtColors.primary,
                         borderRadius: BorderRadius.circular(HbtRadius.pill),
                       ),
                       child: Text(
                         '${item.badge}',
-                        style: HbtTypography.caption
-                            .copyWith(color: Colors.white, fontSize: 11),
+                        style: HbtTypography.caption.copyWith(
+                          color: selected ? HbtColors.primary : Colors.white,
+                          fontSize: 11,
+                        ),
                       ),
                     ),
                 ],
@@ -444,6 +467,7 @@ class _TopBar extends StatelessWidget {
     required this.userName,
     required this.userAvatar,
     required this.onProfileTap,
+    this.trailingActions = const [],
   });
 
   final HbtResponsive r;
@@ -454,6 +478,7 @@ class _TopBar extends StatelessWidget {
   final String? userName;
   final Widget? userAvatar;
   final VoidCallback? onProfileTap;
+  final List<Widget> trailingActions;
 
   @override
   Widget build(BuildContext context) {
@@ -524,6 +549,8 @@ class _TopBar extends StatelessWidget {
                   ),
                 ),
               ),
+            // Extra top-bar actions (before notifications)
+            ...trailingActions,
             // Notifications
             IconButton(
               tooltip: 'Notifications',

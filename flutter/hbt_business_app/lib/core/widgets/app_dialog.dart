@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_theme.dart';
+import '../theme/hbt_tokens.dart';
 
 // =============================================================================
 //  DIALOG VARIANTS
@@ -37,7 +37,7 @@ class AppDialog {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(content),
-                        const SizedBox(height: AppTheme.spacingMd),
+                        const SizedBox(height: HbtSpacing.md),
                         ...builder((value) => result = value),
                       ],
                     ),
@@ -83,7 +83,7 @@ class AppDialog {
             children: [
               if (icon != null) ...[
                 Icon(icon),
-                const SizedBox(width: AppTheme.spacingSm),
+                const SizedBox(width: HbtSpacing.sm),
               ],
               Text(title),
             ],
@@ -113,7 +113,7 @@ class AppDialog {
           children: items.isEmpty
               ? [
                   Padding(
-                    padding: const EdgeInsets.all(AppTheme.spacingXxl),
+                    padding: const EdgeInsets.all(HbtSpacing.xxl),
                     child: Text(emptyLabel),
                   ),
                 ]
@@ -227,7 +227,7 @@ class AppDialog {
             mainAxisSize: MainAxisSize.min,
             children: [
               for (var i = 0; i < fields.length; i++) ...[
-                if (i > 0) const SizedBox(height: AppTheme.spacingMd),
+                if (i > 0) const SizedBox(height: HbtSpacing.md),
                 TextField(
                   controller: controllers[i],
                   maxLines: fields[i].maxLines,
@@ -285,20 +285,20 @@ class AppDialog {
               Icon(
                 Icons.check_circle,
                 color: Colors.green,
-                size: AppTheme.iconLg,
+                size: HbtIconSize.lg,
               ),
-              const SizedBox(height: AppTheme.spacingMd),
+              const SizedBox(height: HbtSpacing.md),
               Text(
                 title,
                 style: Theme.of(context).textTheme.titleMedium,
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: AppTheme.spacingSm),
+              const SizedBox(height: HbtSpacing.sm),
               Text(
                 message,
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: AppTheme.spacingLg),
+              const SizedBox(height: HbtSpacing.lg),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(

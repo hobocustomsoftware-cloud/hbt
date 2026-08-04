@@ -225,8 +225,3 @@ class HbtTypography {
     fontWeight: FontWeight.w500,
   );
 }
-
-/// Alert tone for KPI values that cross a threshold (delayed, cancelled,
-/// exceptions). Core-level so both presentation widgets and feature models
-/// can reference it without coupling layers.
-enum KpiTone { normal, warning, danger }

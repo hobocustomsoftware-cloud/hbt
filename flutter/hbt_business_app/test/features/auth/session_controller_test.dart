@@ -13,9 +13,11 @@ class _AuthFlowApi extends ApiClient {
 
   final loginResults = <String, Map<String, dynamic>>{};
   final meResults = <String, Map<String, dynamic>>{};
+  final refreshResults = <String, Map<String, dynamic>>{};
   final orgListResults = <List<dynamic>>[];
   final orgContextResults = <String, Map<String, dynamic>>{};
   final logoutCalls = <String>[];
+  final refreshPaths = <String>[];
 
   @override
   Future<Map<String, dynamic>> get(String path) async {
@@ -48,6 +50,12 @@ class _AuthFlowApi extends ApiClient {
       String path, Map<String, dynamic> body) async {
     if (path == '/auth/login/') {
       final result = loginResults[path];
+      if (result != null) return result;
+      throw ApiException('Unmocked POST $path');
+    }
+    if (path == '/auth/token/refresh/') {
+      refreshPaths.add(path);
+      final result = refreshResults[path];
       if (result != null) return result;
       throw ApiException('Unmocked POST $path');
     }
@@ -150,6 +158,32 @@ void main() {
         throwsA(isA<ApiException>()),
       );
       expect(auth.authenticated, isFalse);
+    });
+
+    test('token refresh posts to the canonical /auth/token/refresh/ endpoint',
+        () async {
+      final api = _AuthFlowApi()
+        ..loginResults['/auth/login/'] = {
+          'access': 'access-1',
+          'refresh': 'refresh-1',
+        }
+        ..meResults['/auth/me/'] = {'id': 'u1'}
+        ..refreshResults['/auth/token/refresh/'] = {
+          'access': 'access-2',
+          'refresh': 'refresh-2',
+        };
+      final storage = MockStorage();
+
+      final auth = AuthController(api: api, storage: storage);
+      await auth.signIn(phone: '09123456789', password: 'secret');
+
+      // Trigger the wired refresh callback (what ApiClient calls on 401).
+      final newAccess = await api.onRefreshToken!();
+
+      expect(newAccess, 'access-2');
+      expect(api.refreshPaths, ['/auth/token/refresh/']);
+      expect(await storage.read(key: 'access_token'), 'access-2');
+      expect(await storage.read(key: 'refresh_token'), 'refresh-2');
     });
 
     test('signOut clears credentials and notifies backend', () async {

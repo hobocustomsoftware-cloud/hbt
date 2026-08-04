@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_theme.dart';
+import '../theme/hbt_tokens.dart';
 
 // =============================================================================
 //  CARD VARIANTS
@@ -99,7 +99,7 @@ class InfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Card(
         child: Padding(
-          padding: padding ?? AppTheme.cardPadding,
+          padding: padding ?? HbtSpacing.cardPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -107,7 +107,7 @@ class InfoCard extends StatelessWidget {
                 children: [
                   if (leadingIcon != null) ...[
                     Icon(leadingIcon),
-                    const SizedBox(width: AppTheme.spacingSm),
+                    const SizedBox(width: HbtSpacing.sm),
                   ],
                   Expanded(
                     child: Text(
@@ -126,10 +126,10 @@ class InfoCard extends StatelessWidget {
                 ],
               ),
               if (subtitle != null) ...[
-                const SizedBox(height: AppTheme.spacingXs),
+                const SizedBox(height: HbtSpacing.xs),
                 Text(
                   subtitle!,
-                  style: AppTheme.sectionSubtitleStyle(context),
+                  style: _subtitleStyle(context),
                 ),
               ],
               const Divider(),
@@ -157,7 +157,7 @@ class InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingXs),
+        padding: const EdgeInsets.symmetric(vertical: HbtSpacing.xs),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -165,7 +165,7 @@ class InfoRow extends StatelessWidget {
               width: labelWidth,
               child: Text(
                 '$label:',
-                style: AppTheme.dataLabelStyle(context),
+                style: _subtitleStyle(context),
               ),
             ),
             Expanded(
@@ -196,7 +196,7 @@ class QuickActionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Card(
         margin:
-            margin ?? const EdgeInsets.only(bottom: AppTheme.spacingSm),
+            margin ?? const EdgeInsets.only(bottom: HbtSpacing.sm),
         child: ListTile(
           leading: Icon(icon),
           title: Text(label),
@@ -238,14 +238,14 @@ class MetricCard extends StatelessWidget {
       color: bgColor,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        borderRadius: BorderRadius.circular(HbtRadius.md),
         child: Padding(
-          padding: AppTheme.cardPadding,
+          padding: HbtSpacing.cardPadding,
           child: Row(
             children: [
               if (icon != null) ...[
-                Icon(icon, color: fgColor, size: AppTheme.iconMd),
-                const SizedBox(width: AppTheme.spacingMd),
+                Icon(icon, color: fgColor, size: HbtIconSize.md),
+                const SizedBox(width: HbtSpacing.md),
               ],
               Expanded(
                 child: Column(
@@ -261,14 +261,14 @@ class MetricCard extends StatelessWidget {
                     ),
                     Text(
                       label,
-                      style: AppTheme.dataLabelStyle(context)
+                      style: _subtitleStyle(context)
                           .copyWith(color: fgColor.withAlpha(200)),
                     ),
                     if (subtitle != null)
                       Text(
                         subtitle!,
                         style:
-                            AppTheme.sectionSubtitleStyle(context).copyWith(
+                            _subtitleStyle(context).copyWith(
                               color: fgColor.withAlpha(160),
                             ),
                       ),
@@ -308,31 +308,31 @@ class TimelineEventCard extends StatelessWidget {
     final color = iconColor ?? cs.outline;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingXs),
+      padding: const EdgeInsets.symmetric(vertical: HbtSpacing.xs),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: AppTheme.iconSm + 2, color: color),
-          const SizedBox(width: AppTheme.spacingMd),
+          Icon(icon, size: HbtIconSize.sm + 2, color: color),
+          const SizedBox(width: HbtSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(label,
-                    style: AppTheme.cardTitleStyle(context)),
+                    style: HbtTypography.bodyStrong),
                 if (subtitle != null && subtitle!.isNotEmpty)
                   Padding(
                     padding:
-                        const EdgeInsets.only(top: AppTheme.spacingXxs),
+                        const EdgeInsets.only(top: HbtSpacing.xxs),
                     child: Text(subtitle!,
-                        style: AppTheme.sectionSubtitleStyle(context)),
+                        style: _subtitleStyle(context)),
                   ),
               ],
             ),
           ),
           Text(
             _formatTimestamp(timestamp),
-            style: AppTheme.sectionSubtitleStyle(context),
+            style: _subtitleStyle(context),
           ),
         ],
       ),
@@ -354,3 +354,8 @@ class TimelineEventCard extends StatelessWidget {
     }
   }
 }
+
+/// Local caption style for labels/subtitles (design tokens).
+TextStyle _subtitleStyle(BuildContext context) => HbtTypography.caption.copyWith(
+  color: Theme.of(context).colorScheme.onSurfaceVariant,
+);

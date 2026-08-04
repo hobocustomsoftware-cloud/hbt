@@ -41,6 +41,7 @@ from .models import (
     PrinterProfile,
     PrintTemplate,
 )
+from .dashboard import build_owner_dashboard
 from .serializers import (
     CashSettlementSerializer,
     PrintDocumentSerializer,
@@ -191,63 +192,35 @@ class OwnerDashboardView(OrganizationSchedulingMixin, APIView):
     view_permission = "report.owner"
 
     @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "period",
+                OpenApiTypes.STR,
+                enum=["day", "week", "month", "year"],
+                description=(
+                    "Aggregation window for the dashboard snapshot "
+                    "(default: day)."
+                ),
+            ),
+        ],
         responses=OwnerDashboardSerializer,
         operation_id="owner_dashboard",
     )
     def get(self, request, organization_id, version=None):
         organization, _ = self.organization_and_membership()
-        date = request.query_params.get("date") or str(timezone.localdate())
-        trips = Trip.objects.filter(
-            organization=organization, service_date=date
-        )
-        tickets = Ticket.objects.filter(
-            organization=organization, trip__service_date=date
-        ).exclude(status=Ticket.Status.CANCELLED)
-        cargo = CargoShipment.objects.filter(
-            organization=organization, created_at__date=date
-        )
-        payments = PaymentRecord.objects.filter(
-            organization=organization,
-            status=PaymentRecord.Status.CONFIRMED,
-            confirmed_at__date=date,
-        )
-        payment_totals = list(
-            payments.values("method").annotate(
-                amount=Sum("amount"), count=Count("id")
+        period = request.query_params.get("period", "day")
+        if period not in ("day", "week", "month", "year"):
+            return Response(
+                {"detail": "period must be one of day, week, month, year."},
+                status=400,
             )
-        )
-        return Response({
-            "date": date,
-            "data_freshness": timezone.now(),
-            "trips": {
-                "total": trips.count(),
-                "active": trips.filter(
-                    status__in=[
-                        Trip.Status.BOARDING, Trip.Status.DEPARTED,
-                        Trip.Status.IN_PROGRESS, Trip.Status.DELAYED,
-                    ]
-                ).count(),
-                "closed": trips.filter(status=Trip.Status.CLOSED).count(),
-            },
-            "tickets": {"count": tickets.count()},
-            "cargo": {
-                "accepted": cargo.count(),
-                "in_transit": cargo.filter(
-                    status=CargoShipment.Status.IN_TRANSIT
-                ).count(),
-                "ready_for_pickup": cargo.filter(
-                    status=CargoShipment.Status.READY_FOR_PICKUP
-                ).count(),
-                "exceptions": cargo.filter(
-                    status__in=[
-                        CargoShipment.Status.DAMAGED,
-                        CargoShipment.Status.LOST,
-                        CargoShipment.Status.RETURNED,
-                    ]
-                ).count(),
-            },
-            "confirmed_payments": payment_totals,
-        })
+        try:
+            snapshot = build_owner_dashboard(
+                organization=organization, period=period
+            )
+        except ValueError as exc:
+            return Response({"detail": str(exc)}, status=400)
+        return Response(snapshot)
 
 
 def _csv_safe(value):

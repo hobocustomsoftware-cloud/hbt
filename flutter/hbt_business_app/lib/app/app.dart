@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../app/app_config.dart';
+import '../core/theme/hbt_theme.dart';
+import '../core/theme/hbt_tokens.dart';
 import '../shared/services/api_client.dart';
 import '../features/auth/controllers/session_controller.dart';
 import '../features/auth/screens/sign_in_screen.dart';
@@ -38,7 +40,8 @@ class _FriendlyErrorWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
+            const Icon(Icons.error_outline,
+                size: 48, color: HbtColors.danger),
             const SizedBox(height: 12),
             const Text(
               'Something went wrong.',
@@ -158,10 +161,9 @@ class _HbtBusinessAppState extends State<HbtBusinessApp> {
     builder: (context, _) => MaterialApp(
       title: 'HBT Business',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff00695c)),
-        useMaterial3: true,
-      ),
+      theme: HbtTheme.light(),
+      darkTheme: HbtTheme.dark(),
+      themeMode: ThemeMode.system,
       builder: (context, child) => Listener(
         behavior: HitTestBehavior.translucent,
         onPointerDown: (_) => _idle.registerActivity(),
@@ -179,7 +181,7 @@ class _HbtBusinessAppState extends State<HbtBusinessApp> {
                         ? const SizedBox.shrink()
                         : Container(
                             width: double.infinity,
-                            color: Colors.orange.shade800,
+                            color: HbtColors.warning,
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 6),
                             child: const Text(

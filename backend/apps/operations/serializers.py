@@ -165,13 +165,146 @@ class OwnerPaymentSummarySerializer(serializers.Serializer):
     count = serializers.IntegerField()
 
 
+class MoneySummarySerializer(serializers.Serializer):
+    ticket_revenue = serializers.DecimalField(
+        max_digits=14, decimal_places=2, coerce_to_string=False
+    )
+    cargo_revenue = serializers.DecimalField(
+        max_digits=14, decimal_places=2, coerce_to_string=False
+    )
+    total_revenue = serializers.DecimalField(
+        max_digits=14, decimal_places=2, coerce_to_string=False
+    )
+    confirmed_payments = OwnerPaymentSummarySerializer(many=True)
+
+
+class TripOpsSerializer(serializers.Serializer):
+    total = serializers.IntegerField()
+    running = serializers.IntegerField()
+    delayed = serializers.IntegerField()
+    cancelled = serializers.IntegerField()
+    completed = serializers.IntegerField()
+    passengers = serializers.IntegerField()
+    cargo_today = serializers.IntegerField()
+    on_time_percent = serializers.FloatField(allow_null=True)
+
+
+class CargoOpsSerializer(serializers.Serializer):
+    accepted = serializers.IntegerField()
+    in_transit = serializers.IntegerField()
+    ready_for_pickup = serializers.IntegerField()
+    exceptions = serializers.IntegerField()
+
+
+class BookingSummarySerializer(serializers.Serializer):
+    total = serializers.IntegerField()
+    confirmed = serializers.IntegerField()
+    cancelled = serializers.IntegerField()
+    expired = serializers.IntegerField()
+
+
+class PendingRefundSerializer(serializers.Serializer):
+    count = serializers.IntegerField()
+    amount = serializers.DecimalField(
+        max_digits=14, decimal_places=2, coerce_to_string=False
+    )
+
+
+class CashPendingSerializer(serializers.Serializer):
+    cash_in_counters = serializers.DecimalField(
+        max_digits=14, decimal_places=2, coerce_to_string=False
+    )
+    pending_refunds = PendingRefundSerializer()
+    pending_approvals = serializers.IntegerField()
+
+
+class RatioSerializer(serializers.Serializer):
+    count = serializers.IntegerField()
+    total = serializers.IntegerField()
+
+
+class DriverAttendanceSerializer(serializers.Serializer):
+    on_duty = serializers.IntegerField()
+    total = serializers.IntegerField()
+
+
+class FleetPeopleSerializer(serializers.Serializer):
+    vehicles_running = RatioSerializer()
+    vehicles_maintenance = serializers.IntegerField()
+    driver_attendance = DriverAttendanceSerializer()
+
+
+class TrendPointSerializer(serializers.Serializer):
+    label = serializers.CharField()
+    ticket = serializers.DecimalField(
+        max_digits=14, decimal_places=2, coerce_to_string=False
+    )
+    cargo = serializers.DecimalField(
+        max_digits=14, decimal_places=2, coerce_to_string=False
+    )
+    total = serializers.DecimalField(
+        max_digits=14, decimal_places=2, coerce_to_string=False
+    )
+
+
+class RankingRowSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    revenue = serializers.DecimalField(
+        max_digits=14, decimal_places=2, coerce_to_string=False
+    )
+    trips = serializers.IntegerField()
+
+
+class RankingsSerializer(serializers.Serializer):
+    branches = RankingRowSerializer(many=True)
+    routes = RankingRowSerializer(many=True)
+    vehicles = RankingRowSerializer(many=True)
+
+
+class ActivitySerializer(serializers.Serializer):
+    actor = serializers.CharField()
+    action = serializers.CharField()
+    resource_type = serializers.CharField()
+    occurred_at = serializers.DateTimeField()
+
+
+class AlertSerializer(serializers.Serializer):
+    severity = serializers.ChoiceField(choices=("info", "warning", "danger"))
+    message = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class AnnouncementSerializer(serializers.Serializer):
+    title = serializers.CharField()
+    body = serializers.CharField()
+    created_at = serializers.DateTimeField()
+
+
+class PulseSerializer(serializers.Serializer):
+    activities = ActivitySerializer(many=True)
+    alerts = AlertSerializer(many=True)
+    announcements = AnnouncementSerializer(many=True)
+
+
 class OwnerDashboardSerializer(serializers.Serializer):
     date = serializers.DateField()
+    period = serializers.ChoiceField(choices=("day", "week", "month", "year"))
     data_freshness = serializers.DateTimeField()
+    # Backward-compatible summary keys.
     trips = OwnerTripSummarySerializer()
     tickets = serializers.DictField(child=serializers.IntegerField())
     cargo = OwnerCargoSummarySerializer()
     confirmed_payments = OwnerPaymentSummarySerializer(many=True)
+    # Dashboard zones.
+    money = MoneySummarySerializer()
+    trip_ops = TripOpsSerializer()
+    cargo_ops = CargoOpsSerializer()
+    bookings = BookingSummarySerializer()
+    cash_pending = CashPendingSerializer()
+    fleet_people = FleetPeopleSerializer()
+    revenue_trend = TrendPointSerializer(many=True)
+    rankings = RankingsSerializer()
+    pulse = PulseSerializer()
 
 
 class SyncCargoItemSerializer(serializers.Serializer):

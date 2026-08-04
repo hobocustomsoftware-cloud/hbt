@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_form.dart';
-import '../../../core/widgets/error_states.dart';
-import '../../../core/widgets/loading.dart';
+import '../../../core/widgets/async_views.dart';
 import '../../../shared/models/shift_models.dart';
 import '../controllers/shift_controller.dart';
 

@@ -75,7 +75,7 @@ class AuthController extends ChangeNotifier {
     if (refreshToken == null || refreshToken.isEmpty) {
       throw const ApiException('No refresh token available.');
     }
-    final result = await api.post('/auth/refresh/', {
+    final result = await api.post('/auth/token/refresh/', {
       'refresh': refreshToken,
     });
     final newAccess = result['access'] as String?;

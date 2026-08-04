@@ -71,6 +71,48 @@ class AuthenticationApiTests(APITestCase):
             ).exists()
         )
 
+    def test_refresh_token_returns_new_access_and_rotates(self):
+        """The canonical /auth/token/refresh/ endpoint issues a new access
+        token that works against authenticated endpoints (contract lock for
+        the business-app refresh flow)."""
+        User.objects.create_user(
+            phone_number="+959777777777",
+            password="safe-test-password",
+            status=User.Status.ACTIVE,
+        )
+        login_response = self.client.post(
+            reverse("identity:login", kwargs={"version": "v1"}),
+            {
+                "phone_number": "+959777777777",
+                "password": "safe-test-password",
+            },
+            format="json",
+        )
+        self.assertEqual(login_response.status_code, status.HTTP_200_OK)
+        refresh_token = login_response.data["refresh"]
+
+        refresh_response = self.client.post(
+            reverse("identity:token-refresh", kwargs={"version": "v1"}),
+            {"refresh": refresh_token},
+            format="json",
+        )
+        self.assertEqual(refresh_response.status_code, status.HTTP_200_OK)
+        self.assertIn("access", refresh_response.data)
+        # Rotation is enabled, so a new refresh token is also issued.
+        self.assertIn("refresh", refresh_response.data)
+
+        # The refreshed access token must authenticate a real request.
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh_response.data['access']}"
+        )
+        profile_response = self.client.get(
+            reverse("identity:me", kwargs={"version": "v1"})
+        )
+        self.assertEqual(profile_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            profile_response.data["phone_number"], "+959777777777"
+        )
+
     def test_profile_update_cannot_change_login_phone(self):
         user = User.objects.create_user(
             phone_number="+959888888888",
