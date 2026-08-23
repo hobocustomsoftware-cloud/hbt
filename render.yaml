@@ -1,0 +1,103 @@
+# HBT staging/UAT Blueprint for Render.
+# Do not use for production: Render Free Postgres expires after 30 days and
+# Free Key Value is in-memory. Use managed persistent services for production.
+services:
+  - type: web
+    name: hbt-uat-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health/live/
+    autoDeploy: true
+    envVars:
+      - key: DJANGO_DEBUG
+        value: "false"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_ALLOWED_HOSTS
+        fromService:
+          type: web
+          name: hbt-uat-api
+          property: host
+      - key: DJANGO_CSRF_TRUSTED_ORIGINS
+        fromService:
+          type: web
+          name: hbt-uat-api
+          property: url
+      - key: DJANGO_DB_ENGINE
+        value: postgresql
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: hbt-uat-db
+          property: databaseName
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: hbt-uat-db
+          property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: hbt-uat-db
+          property: password
+      - key: POSTGRES_HOST
+        fromDatabase:
+          name: hbt-uat-db
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: hbt-uat-db
+          property: port
+      - key: POSTGRES_SSLMODE
+        value: require
+      - key: HBT_REDIS_URL
+        fromService:
+          type: keyvalue
+          name: hbt-uat-redis
+          property: connectionString
+      - key: SEAT_LOCK_REDIS_URL
+        fromService:
+          type: keyvalue
+          name: hbt-uat-redis
+          property: connectionString
+      - key: HBT_RUN_BOOTSTRAP
+        value: "true"
+      - key: HBT_DEPLOYMENT_MODE
+        value: standalone
+      - key: HBT_STANDALONE_TENANT_SLUG
+        sync: false
+      - key: HBT_AUTOMATIC_PAYMENTS_ENABLED
+        value: "false"
+      - key: DJANGO_SECURE_SSL_REDIRECT
+        value: "true"
+      - key: DJANGO_SECURE_HSTS_SECONDS
+        value: "0"
+      - key: DJANGO_TRUST_PROXY_SSL_HEADER
+        value: "true"
+      - key: PUSH_PROVIDER_BACKEND
+        value: apps.notifications.push.DisabledPushProvider
+      - key: NRC_ENCRYPTION_KEY
+        generateValue: true
+      - key: NRC_BLIND_INDEX_KEY
+        generateValue: true
+      - key: PAYMENT_CREDENTIAL_ENCRYPTION_KEY
+        generateValue: true
+      - key: PUSH_TOKEN_ENCRYPTION_KEY
+        generateValue: true
+      - key: MALWARE_SCAN_REQUIRED
+        value: "false"
+      - key: SENTRY_REQUIRED
+        value: "false"
+      - key: PRIVATE_MEDIA_ROOT
+        value: /tmp/hbt-private-media
+
+  - type: keyvalue
+    name: hbt-uat-redis
+    plan: free
+    maxmemoryPolicy: noeviction
+
+databases:
+  - name: hbt-uat-db
+    plan: free
+    databaseName: hbt
+    user: hbt_app
+    ipAllowList: []
