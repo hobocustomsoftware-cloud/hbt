@@ -16,12 +16,9 @@ services:
       - key: DJANGO_SECRET_KEY
         generateValue: true
       - key: DJANGO_ALLOWED_HOSTS
-        fromService:
-          type: web
-          name: hbt-uat-api
-          property: host
+        value: hbt-uat-api.onrender.com
       - key: DJANGO_CSRF_TRUSTED_ORIGINS
-        sync: false
+        value: https://hbt-uat-api.onrender.com
       - key: DJANGO_DB_ENGINE
         value: postgresql
       - key: POSTGRES_DB
@@ -61,7 +58,7 @@ services:
       - key: HBT_DEPLOYMENT_MODE
         value: standalone
       - key: HBT_STANDALONE_TENANT_SLUG
-        sync: false
+        value: hbt-uat-a99c0b
       - key: HBT_AUTOMATIC_PAYMENTS_ENABLED
         value: "false"
       - key: DJANGO_SECURE_SSL_REDIRECT
