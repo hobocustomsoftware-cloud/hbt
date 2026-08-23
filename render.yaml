@@ -21,16 +21,13 @@ services:
           name: hbt-uat-api
           property: host
       - key: DJANGO_CSRF_TRUSTED_ORIGINS
-        fromService:
-          type: web
-          name: hbt-uat-api
-          property: url
+        sync: false
       - key: DJANGO_DB_ENGINE
         value: postgresql
       - key: POSTGRES_DB
         fromDatabase:
           name: hbt-uat-db
-          property: databaseName
+          property: database
       - key: POSTGRES_USER
         fromDatabase:
           name: hbt-uat-db
@@ -94,6 +91,7 @@ services:
     name: hbt-uat-redis
     plan: free
     maxmemoryPolicy: noeviction
+    ipAllowList: []
 
 databases:
   - name: hbt-uat-db
