@@ -1,0 +1,40 @@
+﻿{
+    "response":  {
+                     "id":  "6baed604-5a15-4e7a-a75d-c74fbc65db45",
+                     "organization_id":  "899bc2bc-854e-4638-8e41-91b9adfac6ec",
+                     "trip":  "bac37073-a5d0-4f6b-9d5a-c988bd315d64",
+                     "booking_number":  "UAT-BOOK-869ceb1abb",
+                     "booking_type":  "individual",
+                     "channel":  "mobile",
+                     "status":  "reserved",
+                     "contact_name":  "UAT Passenger",
+                     "contact_phone":  "+959700959664",
+                     "pickup_stop":  "4813dbd8-f819-4985-8325-ecb73571f77e",
+                     "dropoff_stop":  "5105ae0c-08bd-4685-9ec0-e30916ca1c20",
+                     "expires_at":  null,
+                     "confirmed_at":  null,
+                     "authorization_reference":  "",
+                     "notes":  "",
+                     "client_request_id":  "23d05c84-6975-42d3-a20a-ff00113ac8d1",
+                     "passenger_items":  [
+                                             {
+                                                 "id":  "9e8cf7b8-a172-4a3d-9ed2-646832d8f57f",
+                                                 "passenger":  "9b403ad2-56b5-4a82-8e4d-8669db013a43",
+                                                 "passenger_name":  "UAT Passenger",
+                                                 "seat_reservation":  {
+                                                                          "id":  "873ad0a2-360f-465e-bba0-6aabed289f5a",
+                                                                          "seat_position":  "4484a3d7-ffd8-42c9-b8ad-3b567a4444de",
+                                                                          "seat_identifier_snapshot":  "1B",
+                                                                          "status":  "reserved",
+                                                                          "pickup_sequence":  1,
+                                                                          "dropoff_sequence":  2
+                                                                      }
+                                             }
+                                         ],
+                     "created_by":  "f66b1833-1160-41d6-9309-5386c3a198a2",
+                     "created_at":  "2026-08-23T10:31:30.363850+06:30",
+                     "customer_account":  "f66b1833-1160-41d6-9309-5386c3a198a2",
+                     "updated_at":  "2026-08-23T10:31:30.363867+06:30"
+                 },
+    "status":  "PASS"
+}

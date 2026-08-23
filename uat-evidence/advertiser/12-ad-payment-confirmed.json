@@ -1,0 +1,50 @@
+﻿{
+    "response":  {
+                     "id":  "c9859c55-0931-4f9d-989e-a17a4cd732a6",
+                     "creatives":  [
+                                       {
+                                           "id":  "30187382-36c8-4c86-9271-d6911f98372d",
+                                           "kind":  "image",
+                                           "file_url":  "/media/media-channel/c9859c55-0931-4f9d-989e-a17a4cd732a6/991e46dc-2ee8-42cb-9737-45dbc66d26f8.png",
+                                           "original_filename":  "creative.png",
+                                           "content_type":  "image/png",
+                                           "size_bytes":  53248,
+                                           "duration_seconds":  null,
+                                           "width":  null,
+                                           "height":  null,
+                                           "poster_image":  null,
+                                           "processing_status":  "ready",
+                                           "created_at":  "2026-08-23T11:16:44.998674+06:30"
+                                       }
+                                   ],
+                     "created_at":  "2026-08-23T11:16:44.786898+06:30",
+                     "updated_at":  "2026-08-23T11:21:30.247515+06:30",
+                     "kind":  "sponsored",
+                     "title_my":  "UAT Sponsored Ad",
+                     "title_en":  "UAT Sponsored Express Offer",
+                     "body_my":  "Synthetic UAT advertisement",
+                     "body_en":  "Synthetic UAT advertisement",
+                     "placement":  "media_feed",
+                     "call_to_action_url":  "https://example.invalid/uat-offer",
+                     "targeting":  {
+                                       "route":  "uat-ygn-mdy"
+                                   },
+                     "starts_at":  "2026-08-23T11:16:44.718603+06:30",
+                     "ends_at":  "2026-08-30T11:16:44.718603+06:30",
+                     "priority":  50,
+                     "frequency_cap_per_day":  3,
+                     "status":  "submitted",
+                     "payment_status":  "confirmed",
+                     "payment_reference":  "UAT-MANUAL-CASH-AD-001",
+                     "review_reason":  "",
+                     "reviewed_at":  null,
+                     "impressions":  0,
+                     "clicks":  0,
+                     "tenant":  null,
+                     "organization":  null,
+                     "advertiser":  "8c13d1d9-9f09-45a6-83ea-28dd0b6fd96a",
+                     "created_by":  "4be15077-1628-4a04-b604-0c88e45b6a7a",
+                     "reviewed_by":  null
+                 },
+    "status":  "PASS"
+}

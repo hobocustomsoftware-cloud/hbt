@@ -1,0 +1,18 @@
+﻿{
+    "status":  "PASS",
+    "completed":  [
+                      "Owner login",
+                      "Manager login",
+                      "Counter login",
+                      "Spare login",
+                      "Passenger login",
+                      "Passenger trip search",
+                      "Seat selection",
+                      "Booking",
+                      "Manual cash record",
+                      "Manager approval and ticket issue",
+                      "Passenger ticket visibility"
+                  ],
+    "payment_id":  "51b81554-a6be-47d8-9400-3f11f7285c93",
+    "booking_id":  "6baed604-5a15-4e7a-a75d-c74fbc65db45"
+}

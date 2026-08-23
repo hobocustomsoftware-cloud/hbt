@@ -1,0 +1,43 @@
+﻿{
+    "response":  {
+                     "count":  1,
+                     "next":  null,
+                     "previous":  null,
+                     "results":  [
+                                     {
+                                         "id":  "bac37073-a5d0-4f6b-9d5a-c988bd315d64",
+                                         "organization_id":  "899bc2bc-854e-4638-8e41-91b9adfac6ec",
+                                         "schedule":  null,
+                                         "route":  "e59cdc52-737f-40cd-ae0e-9d03061ed592",
+                                         "trip_number":  "UAT-A99C0B-001",
+                                         "service_date":  "2026-08-26",
+                                         "planned_departure_at":  "2026-08-26T10:27:50.352465+06:30",
+                                         "planned_arrival_at":  "2026-08-26T18:27:50.352465+06:30",
+                                         "status":  "planned",
+                                         "operational_notes":  "",
+                                         "boarding_started_at":  null,
+                                         "departed_at":  null,
+                                         "arrived_at":  null,
+                                         "current_stop":  null,
+                                         "schedule_snapshot":  {
+
+                                                               },
+                                         "route_snapshot":  {
+
+                                                            },
+                                         "vehicle":  null,
+                                         "driver":  null,
+                                         "conductor":  null,
+                                         "seat_layout":  "644aa07d-b70d-4878-a302-f4e941e41e23",
+                                         "seat_layout_snapshot":  {
+                                                                      "id":  "644aa07d-b70d-4878-a302-f4e941e41e23",
+                                                                      "version":  1
+                                                                  },
+                                         "resources_complete":  false,
+                                         "created_at":  "2026-08-23T10:27:32.137264+06:30",
+                                         "updated_at":  "2026-08-23T10:27:50.357865+06:30"
+                                     }
+                                 ]
+                 },
+    "status":  "PASS"
+}

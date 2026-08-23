@@ -1,0 +1,29 @@
+﻿{
+    "response":  {
+                     "id":  "51b81554-a6be-47d8-9400-3f11f7285c93",
+                     "evidence_status":  null,
+                     "created_at":  "2026-08-23T10:31:30.553141+06:30",
+                     "updated_at":  "2026-08-23T10:31:30.553156+06:30",
+                     "payment_number":  "UAT-CASH-6c21f36766",
+                     "method":  "cash",
+                     "status":  "recorded",
+                     "amount":  "25000.00",
+                     "currency":  "MMK",
+                     "provider_name":  "manual-cash",
+                     "transaction_reference":  "UAT-CASH-REF-788968388b",
+                     "payer_reference":  "",
+                     "paid_at":  "2026-08-23T10:31:30.447248+06:30",
+                     "confirmed_at":  null,
+                     "rejection_reason":  "",
+                     "client_request_id":  "d68fa53e-7884-4cdd-9d7c-cf872d4c5aa3",
+                     "organization":  "899bc2bc-854e-4638-8e41-91b9adfac6ec",
+                     "booking":  "6baed604-5a15-4e7a-a75d-c74fbc65db45",
+                     "cargo_shipment":  null,
+                     "corporate_invoice":  null,
+                     "receiving_account_version":  null,
+                     "recorded_by":  "2596fd4b-ad27-4744-a793-d21e776430d4",
+                     "confirmed_by":  null,
+                     "tenant":  null
+                 },
+    "status":  "PASS"
+}

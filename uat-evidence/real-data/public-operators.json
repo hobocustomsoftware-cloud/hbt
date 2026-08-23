@@ -1,0 +1,26 @@
+﻿{
+    "count":  1,
+    "next":  null,
+    "previous":  null,
+    "results":  [
+                    {
+                        "organization_id":  "b61d69ef-ff0e-4034-b546-c14617595e2c",
+                        "public_slug":  "hbt-demo-express",
+                        "name_my":  "HBT Demo Express",
+                        "name_en":  "HBT Demo Express",
+                        "about_my":  "",
+                        "about_en":  "",
+                        "logo":  null,
+                        "cover_image":  null,
+                        "primary_color":  "#1F6FEB",
+                        "secondary_color":  "#FFFFFF",
+                        "public_phone":  "",
+                        "public_email":  "",
+                        "website_url":  "",
+                        "social_links":  {
+
+                                         },
+                        "is_verified":  false
+                    }
+                ]
+}

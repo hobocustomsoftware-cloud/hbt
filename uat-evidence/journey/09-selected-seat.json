@@ -1,0 +1,13 @@
+﻿{
+    "seat":  {
+                 "id":  "4484a3d7-ffd8-42c9-b8ad-3b567a4444de",
+                 "identifier":  "1B",
+                 "label":  "",
+                 "deck":  1,
+                 "row":  1,
+                 "column":  2,
+                 "available":  true,
+                 "active_lock":  null
+             },
+    "status":  "PASS"
+}

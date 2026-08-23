@@ -1,0 +1,5 @@
+﻿{
+    "status":  "BLOCKED_OR_FAIL",
+    "error":  "The remote server returned an error: (403) Forbidden.",
+    "response":  "{\"detail\":\"The advertiser account must be verified.\"}"
+}

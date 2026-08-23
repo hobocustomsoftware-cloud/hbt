@@ -1,0 +1,15 @@
+﻿{
+    "response":  {
+                     "id":  "276dce57-5927-445b-b6d2-24b5ce997026",
+                     "phone_number":  "+959840856027",
+                     "email":  "spare-a99c0b@example.invalid",
+                     "first_name":  "UAT",
+                     "last_name":  "Spare",
+                     "status":  "active",
+                     "preferred_language":  "my",
+                     "phone_verified_at":  null,
+                     "email_verified_at":  null,
+                     "date_joined":  "2026-08-23T10:23:35.292143+06:30"
+                 },
+    "status":  "PASS"
+}

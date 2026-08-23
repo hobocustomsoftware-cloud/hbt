@@ -1,0 +1,17 @@
+﻿{
+    "status":  "PASS_MANUAL_PAYMENT_CORE",
+    "completed":  [
+                      "passenger login",
+                      "business login",
+                      "payment options",
+                      "payment read",
+                      "manual approval"
+                  ],
+    "next":  [
+                 "verify ticket issued",
+                 "verify passenger ticket view",
+                 "verify boarding scan",
+                 "negative reject path",
+                 "idempotency replay"
+             ]
+}

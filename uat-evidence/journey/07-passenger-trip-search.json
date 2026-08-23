@@ -1,0 +1,21 @@
+﻿{
+    "response":  {
+                     "count":  1,
+                     "next":  null,
+                     "previous":  null,
+                     "results":  [
+                                     {
+                                         "id":  "bac37073-a5d0-4f6b-9d5a-c988bd315d64",
+                                         "organization":  "899bc2bc-854e-4638-8e41-91b9adfac6ec",
+                                         "organization_name":  "HBT UAT Express Co.",
+                                         "trip_number":  "UAT-A99C0B-001",
+                                         "service_date":  "2026-08-26",
+                                         "planned_departure_at":  "2026-08-26T10:27:50.352465+06:30",
+                                         "planned_arrival_at":  "2026-08-26T18:27:50.352465+06:30",
+                                         "route":  "e59cdc52-737f-40cd-ae0e-9d03061ed592",
+                                         "available_seat_count":  5
+                                     }
+                                 ]
+                 },
+    "status":  "PASS"
+}

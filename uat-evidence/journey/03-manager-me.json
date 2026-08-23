@@ -1,0 +1,15 @@
+﻿{
+    "response":  {
+                     "id":  "b88d186f-1384-443b-b387-035ae8e917d2",
+                     "phone_number":  "+959820263593",
+                     "email":  "manager-a99c0b@example.invalid",
+                     "first_name":  "UAT",
+                     "last_name":  "Manager",
+                     "status":  "active",
+                     "preferred_language":  "my",
+                     "phone_verified_at":  null,
+                     "email_verified_at":  null,
+                     "date_joined":  "2026-08-23T10:23:33.037055+06:30"
+                 },
+    "status":  "PASS"
+}

@@ -1,0 +1,43 @@
+﻿{
+    "response":  {
+                     "count":  1,
+                     "next":  null,
+                     "previous":  null,
+                     "results":  [
+                                     {
+                                         "id":  "0d476656-d362-48d6-a6fb-3ff8226a33f1",
+                                         "organization_id":  "899bc2bc-854e-4638-8e41-91b9adfac6ec",
+                                         "booking":  "6baed604-5a15-4e7a-a75d-c74fbc65db45",
+                                         "booking_passenger":  "9e8cf7b8-a172-4a3d-9ed2-646832d8f57f",
+                                         "passenger":  "9b403ad2-56b5-4a82-8e4d-8669db013a43",
+                                         "passenger_name":  "UAT Passenger",
+                                         "trip":  "bac37073-a5d0-4f6b-9d5a-c988bd315d64",
+                                         "trip_number":  "UAT-A99C0B-001",
+                                         "planned_departure_at":  "2026-08-26T10:27:50.352465+06:30",
+                                         "seat_position":  "4484a3d7-ffd8-42c9-b8ad-3b567a4444de",
+                                         "seat_identifier":  "1B",
+                                         "ticket_number":  "UAT-TICKET-c95804ac3e",
+                                         "ticket_type":  "electronic",
+                                         "status":  "issued",
+                                         "validation_code":  "3b4b2a55-f5ea-424d-878f-124e677d9f40",
+                                         "qr_payload":  "HBT:TICKET:3b4b2a55-f5ea-424d-878f-124e677d9f40",
+                                         "fare_amount":  "25000.00",
+                                         "discount_amount":  "0.00",
+                                         "tax_amount":  "0.00",
+                                         "service_charge":  "0.00",
+                                         "total_amount":  "25000.00",
+                                         "currency":  "MMK",
+                                         "issuing_channel":  "mobile",
+                                         "issued_by":  "b88d186f-1384-443b-b387-035ae8e917d2",
+                                         "issued_at":  "2026-08-23T10:31:30.787061+06:30",
+                                         "created_at":  "2026-08-23T10:31:30.786990+06:30",
+                                         "updated_at":  "2026-08-23T10:31:30.787005+06:30",
+                                         "replacement_of":  null,
+                                         "revoked_at":  null,
+                                         "revoked_by":  null,
+                                         "revocation_reason":  ""
+                                     }
+                                 ]
+                 },
+    "status":  "PASS"
+}

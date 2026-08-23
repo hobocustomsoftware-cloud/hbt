@@ -1,0 +1,70 @@
+﻿{
+    "response":  {
+                     "trip_id":  "bac37073-a5d0-4f6b-9d5a-c988bd315d64",
+                     "pickup_stop":  "4813dbd8-f819-4985-8325-ecb73571f77e",
+                     "dropoff_stop":  "5105ae0c-08bd-4685-9ec0-e30916ca1c20",
+                     "seats":  [
+                                   {
+                                       "id":  "bf1bbf78-65f0-4b6f-8f52-e82f9a9c33ed",
+                                       "identifier":  "1A",
+                                       "label":  "",
+                                       "deck":  1,
+                                       "row":  1,
+                                       "column":  1,
+                                       "available":  false,
+                                       "active_lock":  null
+                                   },
+                                   {
+                                       "id":  "4484a3d7-ffd8-42c9-b8ad-3b567a4444de",
+                                       "identifier":  "1B",
+                                       "label":  "",
+                                       "deck":  1,
+                                       "row":  1,
+                                       "column":  2,
+                                       "available":  true,
+                                       "active_lock":  null
+                                   },
+                                   {
+                                       "id":  "52771cd3-13e7-4b49-828c-e1aaa2138a3a",
+                                       "identifier":  "1C",
+                                       "label":  "",
+                                       "deck":  1,
+                                       "row":  1,
+                                       "column":  3,
+                                       "available":  true,
+                                       "active_lock":  null
+                                   },
+                                   {
+                                       "id":  "972102ee-1fc3-4ca3-b6db-f8aac615b2e8",
+                                       "identifier":  "2A",
+                                       "label":  "",
+                                       "deck":  1,
+                                       "row":  2,
+                                       "column":  1,
+                                       "available":  true,
+                                       "active_lock":  null
+                                   },
+                                   {
+                                       "id":  "ff7172d5-a0ce-4d24-a17c-757a660783de",
+                                       "identifier":  "2B",
+                                       "label":  "",
+                                       "deck":  1,
+                                       "row":  2,
+                                       "column":  2,
+                                       "available":  true,
+                                       "active_lock":  null
+                                   },
+                                   {
+                                       "id":  "4cab7b60-7d48-4a0a-bb29-8ac13e1d1e6a",
+                                       "identifier":  "2C",
+                                       "label":  "",
+                                       "deck":  1,
+                                       "row":  2,
+                                       "column":  3,
+                                       "available":  true,
+                                       "active_lock":  null
+                                   }
+                               ]
+                 },
+    "status":  "PASS"
+}

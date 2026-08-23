@@ -1,0 +1,16 @@
+﻿{
+    "response":  {
+                     "id":  "8c13d1d9-9f09-45a6-83ea-28dd0b6fd96a",
+                     "created_at":  "2026-08-23T10:58:52.979825+06:30",
+                     "updated_at":  "2026-08-23T10:58:52.979841+06:30",
+                     "business_name":  "UAT Shwe Express Advertising",
+                     "contact_phone":  "+959850242761",
+                     "contact_email":  "advertiser-a99c0b@example.invalid",
+                     "registration_number":  "AD-UAT-A99C0B",
+                     "status":  "pending",
+                     "reviewed_at":  null,
+                     "owner":  "4be15077-1628-4a04-b604-0c88e45b6a7a",
+                     "reviewed_by":  null
+                 },
+    "status":  "PASS"
+}

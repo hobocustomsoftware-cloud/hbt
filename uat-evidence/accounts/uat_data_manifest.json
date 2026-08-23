@@ -1,0 +1,14 @@
+﻿{
+  "status": "PASS",
+  "tenant_id": "96ccc033-5a87-4178-8c44-a04c59390cc8",
+  "organization_id": "899bc2bc-854e-4638-8e41-91b9adfac6ec",
+  "route_id": "e59cdc52-737f-40cd-ae0e-9d03061ed592",
+  "origin_stop_id": "4813dbd8-f819-4985-8325-ecb73571f77e",
+  "destination_stop_id": "5105ae0c-08bd-4685-9ec0-e30916ca1c20",
+  "trip_id": "bac37073-a5d0-4f6b-9d5a-c988bd315d64",
+  "trip_number": "UAT-A99C0B-001",
+  "service_date": "2026-08-26",
+  "seat_layout_id": "644aa07d-b70d-4878-a302-f4e941e41e23",
+  "traveler_id": "9b403ad2-56b5-4a82-8e4d-8669db013a43",
+  "fare_rule_id": "c8885a13-a868-4ee7-8ae7-304af76b36d5"
+}

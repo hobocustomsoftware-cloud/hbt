@@ -1,0 +1,12 @@
+Visual inspection — 2026-08-23
+
+passenger-web-launch.png: Initial capture from the built Passenger web artifact was entirely white with no visible controls. A delayed capture could not be produced reliably; Chrome runtime logs did not expose a clean application exception because browser service logs were mixed with infrastructure messages. Result: BLOCKED / Passenger web shell requires a stable Flutter web-server capture and application-console verification.
+
+business-web-launch.png: Initial capture was white because Flutter startup had not completed. The delayed capture `business-web-launch-wait.png` rendered the HBT Business login screen with Burmese labels, phone/password inputs, sign-in button and API endpoint text. Result: PASS for Business web launch rendering.
+
+The authenticated API journey passed independently for Owner, Manager, Counter, Spare and Passenger. Native Android UI remains untested because Android SDK/ADB/device are unavailable.
+
+
+Retest update — Passenger web
+
+The blank-shell cause was identified as a web-incompatible default API/WebSocket target (`10.0.2.2`) used outside an Android emulator. Passenger AppConfig now derives same-origin `/api/v1` and `ws`/`wss` endpoints on Flutter Web while preserving the Android emulator defaults. `flutter build web --release --no-pub` completed successfully, and `passenger-web-fixed-retest.png` visibly renders the Myanmar Passenger sign-in screen with phone, password, NRC/passport and confirm-password fields. Result: PASS for Passenger web launch rendering after fix.
