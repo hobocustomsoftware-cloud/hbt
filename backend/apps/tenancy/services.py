@@ -1,5 +1,7 @@
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
+from django.db.models import Q
+from django.utils import timezone
 
 from apps.audit.services import record_audit_event
 
@@ -25,10 +27,18 @@ def active_membership_for(user, organization):
 
 
 def effective_permission_codes(membership):
+    now = timezone.now()
     return set(
         Permission.objects.filter(
-            roles__membership_assignments__membership=membership
-        ).values_list("code", flat=True)
+            roles__membership_assignments__membership=membership,
+        )
+        .filter(
+            Q(roles__membership_assignments__valid_from__isnull=True)
+            | Q(roles__membership_assignments__valid_from__lte=now),
+            Q(roles__membership_assignments__valid_until__isnull=True)
+            | Q(roles__membership_assignments__valid_until__gte=now),
+        )
+        .values_list("code", flat=True)
     )
 
 
