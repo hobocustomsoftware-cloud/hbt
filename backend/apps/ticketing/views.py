@@ -28,6 +28,7 @@ class TicketValidateActionView(OrganizationSchedulingMixin, APIView):
     manage_permission = "ticket.validate"
 
     @extend_schema(
+        request=None,
         responses={200: TicketSerializer},
         operation_id="ticket_validate_action",
     )
