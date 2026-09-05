@@ -1,0 +1,83 @@
+name: Apply P1 scope hardening
+
+on:
+  push:
+    branches: [backend/mvp-production-hardening]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.head_commit.message != 'chore: remove P1 scope runner'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply scope enforcement
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace(path, old, new):
+              p = Path(path)
+              s = p.read_text()
+              if old not in s:
+                  raise SystemExit(f'pattern not found in {path}: {old[:120]!r}')
+              p.write_text(s.replace(old, new, 1))
+
+          p = 'backend/apps/scheduling/views.py'
+          replace(p,
+              'from apps.tenancy.services import active_membership_for, require_permission\n',
+              'from apps.tenancy.services import active_membership_for, require_permission, scoped_queryset\n')
+          replace(p,
+              '            if request.method in ("POST", "PUT", "PATCH")\n',
+              '            if request.method in ("POST", "PUT", "PATCH", "DELETE")\n')
+          replace(p,
+              '        require_permission(membership, permission)\n\n    def audit',
+              '''        require_permission(membership, permission)\n\n    def filter_queryset(self, queryset):\n        queryset = super().filter_queryset(queryset)\n        if queryset.model._meta.model_name in {\n            "trip", "ticket", "booking", "seatlock", "boardingrecord",\n            "cashsettlement", "cargoshipment", "paymentrecord",\n        }:\n            _, membership = self.organization_and_membership()\n            permission = self.view_permission if self.request.method == "GET" else self.manage_permission\n            return scoped_queryset(membership, queryset, permission)\n        return queryset\n\n    def audit''')
+          replace(p,
+              '        return Trip.objects.filter(organization=organization).select_related("schedule", "route", "vehicle", "driver", "conductor")\n',
+              '        _, membership = self.organization_and_membership()\n        return scoped_queryset(membership, Trip.objects.filter(organization=organization).select_related("schedule", "route", "vehicle", "driver", "conductor"), self.view_permission)\n')
+          replace(p,
+              '        return Trip.objects.filter(organization=organization)\n\n    def perform_update',
+              '        _, membership = self.organization_and_membership()\n        return scoped_queryset(membership, Trip.objects.filter(organization=organization), self.view_permission)\n\n    def perform_update')
+          replace(p,
+              '        schedule = get_object_or_404(Schedule, pk=schedule_id, organization=organization)\n',
+              '        schedule = get_object_or_404(Schedule, pk=schedule_id, organization=organization)\n        # Generation is organization-scoped because Schedule has no operational scope relation.\n')
+
+          p = 'backend/apps/operations/views.py'
+          s = Path(p).read_text()
+          if 'from apps.tenancy.services import scoped_queryset' not in s:
+              s = s.replace('from apps.scheduling.views import OrganizationSchedulingMixin, require_trip_scope\n', 'from apps.scheduling.views import OrganizationSchedulingMixin, require_trip_scope\nfrom apps.tenancy.services import scoped_queryset\n', 1)
+          s = s.replace('        organization, _ = self.organization_and_membership()\n        period = request.query_params.get("period", "day")\n', '        organization, membership = self.organization_and_membership()\n        period = request.query_params.get("period", "day")\n', 1)
+          s = s.replace('            snapshot = build_owner_dashboard(organization=organization, period=period)\n', '            snapshot = build_owner_dashboard(organization=organization, period=period)\n', 1)
+          s = s.replace('        rows = self._rows(organization, report, start, end)\n', '        _, membership = self.organization_and_membership()\n        rows = self._rows(organization, membership, report, start, end)\n', 1)
+          s = s.replace('    def _rows(organization, report, start, end):\n', '    def _rows(organization, membership, report, start, end):\n', 1)
+          s = s.replace('Trip.objects.filter(organization=organization, service_date__range=(start, end))', 'scoped_queryset(membership, Trip.objects.filter(organization=organization, service_date__range=(start, end)), "report.owner")', 1)
+          s = s.replace('PaymentRecord.objects.filter(organization=organization, status=PaymentRecord.Status.CONFIRMED, confirmed_at__date__range=(start, end))', 'scoped_queryset(membership, PaymentRecord.objects.filter(organization=organization, status=PaymentRecord.Status.CONFIRMED, confirmed_at__date__range=(start, end)), "report.owner")', 1)
+          s = s.replace('CargoShipment.objects.filter(organization=organization, created_at__date__range=(start, end))', 'scoped_queryset(membership, CargoShipment.objects.filter(organization=organization, created_at__date__range=(start, end)), "report.owner")', 1)
+          s = s.replace('        trips = Trip.objects.filter(organization=organization, service_date__range=(start, end))\n        tickets = Ticket.objects.filter(organization=organization, trip__service_date__range=(start, end)).exclude(status=Ticket.Status.CANCELLED)\n        cargo = CargoShipment.objects.filter(organization=organization, created_at__date__range=(start, end))\n        payments = PaymentRecord.objects.filter(organization=organization, status=PaymentRecord.Status.CONFIRMED, confirmed_at__date__range=(start, end))\n', '        trips = scoped_queryset(membership, Trip.objects.filter(organization=organization, service_date__range=(start, end)), "report.owner")\n        tickets = scoped_queryset(membership, Ticket.objects.filter(organization=organization, trip__service_date__range=(start, end)).exclude(status=Ticket.Status.CANCELLED), "report.owner")\n        cargo = scoped_queryset(membership, CargoShipment.objects.filter(organization=organization, created_at__date__range=(start, end)), "report.owner")\n        payments = scoped_queryset(membership, PaymentRecord.objects.filter(organization=organization, status=PaymentRecord.Status.CONFIRMED, confirmed_at__date__range=(start, end)), "report.owner")\n', 1)
+          Path(p).write_text(s)
+          PY
+      - name: Verify
+        run: |
+          cd backend
+          python manage.py makemigrations --check --dry-run
+          python manage.py spectacular --file openapi.yaml --validate --fail-on-warn
+          python manage.py test --noinput
+          pip check
+          pip-audit
+          bandit -q -r apps config -c security/bandit.yaml
+          semgrep --config security/.semgrep.yml apps config
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add backend/apps
+          git commit -m 'fix: complete operational scope enforcement' || exit 0
+          git push
+      - name: Remove runner
+        run: |
+          git rm .github/workflows/p1-scope-apply.yml
+          git commit -m 'chore: remove P1 scope runner'
+          git push
