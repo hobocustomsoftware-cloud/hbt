@@ -49,8 +49,7 @@ class CargoPricingRuleListCreateView(OrganizationSchedulingMixin, generics.ListC
 
 class CargoPricingRuleDetailView(OrganizationSchedulingMixin, generics.RetrieveUpdateAPIView):
     serializer_class=CargoPricingRuleSerializer; view_permission="cargo.view"; manage_permission="cargo.category.manage"
-    def get_queryset(self):
-        organization,_=self.organization_and_membership(); return CargoPricingRule.objects.filter(organization=organization)
+    def get_queryset(self): organization,_=self.organization_and_membership(); return CargoPricingRule.objects.filter(organization=organization)
     def perform_update(self,serializer):
         before={"active":serializer.instance.active}; rule=serializer.save(); rule.full_clean(); rule.save(); self.audit("cargo.pricing_rule.updated",rule,before=before)
 
@@ -64,8 +63,7 @@ class CargoContactListCreateView(OrganizationSchedulingMixin, generics.ListCreat
 
 class CargoShipmentListCreateView(OrganizationSchedulingMixin, generics.ListCreateAPIView):
     serializer_class=CargoShipmentSerializer; view_permission="cargo.view"; manage_permission="cargo.accept"
-    def get_queryset(self):
-        organization,_=self.organization_and_membership(); return CargoShipment.objects.filter(organization=organization).select_related("sender","receiver","origin_terminal","destination_terminal").prefetch_related("custody_events","items","charge_lines")
+    def get_queryset(self): organization,_=self.organization_and_membership(); return CargoShipment.objects.filter(organization=organization).select_related("sender","receiver","origin_terminal","destination_terminal").prefetch_related("custody_events","items","charge_lines")
     def perform_create(self,serializer):
         _,membership=self.organization_and_membership(); require_cargo_acceptance_scope(membership,serializer.validated_data["origin_terminal"],serializer.validated_data.get("accepting_counter")); serializer.save()
 
@@ -122,7 +120,10 @@ class CargoOwnerReportView(OrganizationSchedulingMixin,APIView):
         if date_to: queryset=queryset.filter(created_at__date__lte=date_to)
         if status_value: queryset=queryset.filter(status=status_value)
         if acceptance_channel: queryset=queryset.filter(acceptance_channel=acceptance_channel)
-        totals=queryset.aggregate(shipment_count=Count("id"),piece_count=Sum("piece_count"),weight_kg=Sum("weight_kg"),total_charge=Sum("total_charge")); confirmed_payment=PaymentRecord.objects.filter(organization=organization,cargo_shipment__in=queryset,status=PaymentRecord.Status.CONFIRMED).aggregate(total=Sum("amount"))["total"] or 0; by_channel=list(queryset.values("acceptance_channel").annotate(shipment_count=Count("id"),total_charge=Sum("total_charge")).order_by("acceptance_channel"); total_charge=totals["total_charge"] or 0
+        totals=queryset.aggregate(shipment_count=Count("id"),piece_count=Sum("piece_count"),weight_kg=Sum("weight_kg"),total_charge=Sum("total_charge"))
+        confirmed_payment=PaymentRecord.objects.filter(organization=organization,cargo_shipment__in=queryset,status=PaymentRecord.Status.CONFIRMED).aggregate(total=Sum("amount"))["total"] or 0
+        by_channel=list(queryset.values("acceptance_channel").annotate(shipment_count=Count("id"),total_charge=Sum("total_charge")).order_by("acceptance_channel")
+        total_charge=totals["total_charge"] or 0
         return Response({**{key:value or 0 for key,value in totals.items()},"confirmed_payment":confirmed_payment,"outstanding_amount":max(total_charge-confirmed_payment,0),"by_acceptance_channel":by_channel})
 
 class CargoAllocationPaidView(OrganizationSchedulingMixin,APIView):
