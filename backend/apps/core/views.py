@@ -1,8 +1,8 @@
+from django.db import connection
+from drf_spectacular.utils import extend_schema
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.db import connection
-from drf_spectacular.utils import extend_schema
 
 from .serializers import HealthSerializer
 
@@ -47,3 +47,23 @@ class ReadinessView(APIView):
                 status=503,
             )
         return Response({"status": "ready", "database": "ok"})
+
+
+# The unversioned probes are infrastructure endpoints and do not need to be
+# duplicated in the public API schema alongside /api/{version}/ health routes.
+class UnversionedHealthView(HealthView):
+    @extend_schema(exclude=True)
+    def get(self, request, version=None):
+        return super().get(request, version=version)
+
+
+class UnversionedLivenessView(LivenessView):
+    @extend_schema(exclude=True)
+    def get(self, request, version=None):
+        return super().get(request, version=version)
+
+
+class UnversionedReadinessView(ReadinessView):
+    @extend_schema(exclude=True)
+    def get(self, request, version=None):
+        return super().get(request, version=version)

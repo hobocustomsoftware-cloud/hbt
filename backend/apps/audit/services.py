@@ -5,8 +5,38 @@ from django.core.serializers.json import DjangoJSONEncoder
 from .models import AuditEvent
 
 
+_SENSITIVE_KEYS = {
+    "password",
+    "password1",
+    "password2",
+    "token",
+    "access_token",
+    "refresh_token",
+    "authorization",
+    "api_key",
+    "secret",
+    "client_secret",
+    "private_key",
+    "otp",
+    "nrc",
+}
+
+
+def _redact(value):
+    if isinstance(value, dict):
+        return {
+            key: "[REDACTED]" if str(key).lower() in _SENSITIVE_KEYS else _redact(item)
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [_redact(item) for item in value]
+    if isinstance(value, tuple):
+        return [_redact(item) for item in value]
+    return value
+
+
 def json_safe(value):
-    return json.loads(json.dumps(value or {}, cls=DjangoJSONEncoder))
+    return json.loads(json.dumps(_redact(value or {}), cls=DjangoJSONEncoder))
 
 
 def record_audit_event(
