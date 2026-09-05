@@ -94,6 +94,57 @@ class OfflineServiceTests(TestCase):
         self.assertEqual(SyncOperation.objects.count(), 1)
         self.assertEqual(first.status, SyncOperation.Status.APPLIED)
 
+    def test_reusing_operation_id_with_different_payload_is_rejected(self):
+        create_event_notifications(
+            event_type="test",
+            event_key="offline:read:hash",
+            kind=Notification.Kind.SYSTEM,
+            category=Notification.Category.INFORMATION,
+            recipients=[self.user],
+            organization=self.organization,
+            title="Test",
+            body="Test",
+        )
+        notification = Notification.objects.get(
+            recipient=self.user, channel=Notification.Channel.IN_APP
+        )
+        operation_id = uuid.uuid4()
+        apply_sync_operation(
+            device=self.device,
+            organization=self.organization,
+            actor=self.user,
+            client_operation_id=operation_id,
+            operation_type="notification.read",
+            payload={"notification_id": str(notification.id)},
+        )
+        with self.assertRaisesMessage(
+            ValueError,
+            "The client operation ID was already used with different content.",
+        ):
+            apply_sync_operation(
+                device=self.device,
+                organization=self.organization,
+                actor=self.user,
+                client_operation_id=operation_id,
+                operation_type="notification.read",
+                payload={"notification_id": str(uuid.uuid4())},
+            )
+
+    def test_unsupported_operation_is_explicitly_rejected(self):
+        operation = apply_sync_operation(
+            device=self.device,
+            organization=self.organization,
+            actor=self.user,
+            client_operation_id=uuid.uuid4(),
+            operation_type="unknown.operation",
+            payload={},
+        )
+        self.assertEqual(operation.status, SyncOperation.Status.REJECTED)
+        self.assertEqual(
+            operation.error_code,
+            "offline_operation_not_supported",
+        )
+
 
 class OfflineApiTests(APITestCase):
     def setUp(self):
