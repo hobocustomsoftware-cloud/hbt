@@ -118,8 +118,6 @@ class OfflineApiTests(APITestCase):
             scope_type=MembershipRole.ScopeType.COMPANY,
         )
         self.client.force_authenticate(self.user)
-
-    def test_device_enrollment_and_delta_pull_are_user_scoped(self):
         enrollment = self.client.post(
             "/api/v1/me/devices/",
             {
@@ -132,18 +130,58 @@ class OfflineApiTests(APITestCase):
             format="json",
         )
         self.assertEqual(enrollment.status_code, 201)
-        device_id = enrollment.data["id"]
-        change = SyncChange.objects.create(
+        self.device_id = enrollment.data["id"]
+        self.sync_url = (
+            f"/api/v1/organizations/{self.organization.id}/devices/"
+            f"{self.device_id}/sync/pull/?cursor=0"
+        )
+        self.change = SyncChange.objects.create(
             organization=self.organization,
             resource_type="trip",
             resource_id=uuid.uuid4(),
             operation="updated",
             payload={"status": "ready"},
         )
-        response = self.client.get(
+
+    def _issue_snapshot(self):
+        snapshot_response = self.client.post(
             f"/api/v1/organizations/{self.organization.id}/devices/"
-            f"{device_id}/sync/pull/?cursor=0"
+            f"{self.device_id}/authorization-snapshot/",
+            {},
+            format="json",
         )
+        self.assertEqual(snapshot_response.status_code, 201)
+        return snapshot_response.data["id"]
+
+    def test_delta_pull_requires_authorization_snapshot(self):
+        response = self.client.get(self.sync_url)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            response.data["detail"],
+            "A valid offline authorization snapshot is required.",
+        )
+
+    def test_delta_pull_allows_valid_authorization_snapshot(self):
+        self._issue_snapshot()
+        response = self.client.get(self.sync_url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["next_cursor"], change.sequence)
+        self.assertEqual(response.data["next_cursor"], self.change.sequence)
         self.assertEqual(len(response.data["changes"]), 1)
+
+    def test_delta_pull_rejects_expired_authorization_snapshot(self):
+        snapshot_id = self._issue_snapshot()
+        snapshot = self.device.authorization_snapshots.get(pk=snapshot_id)
+        snapshot.expires_at = timezone.now() - timezone.timedelta(seconds=1)
+        snapshot.save(update_fields=["expires_at", "updated_at"])
+
+        response = self.client.get(self.sync_url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_delta_pull_rejects_revoked_authorization_snapshot(self):
+        snapshot_id = self._issue_snapshot()
+        snapshot = self.device.authorization_snapshots.get(pk=snapshot_id)
+        snapshot.revoked_at = timezone.now()
+        snapshot.save(update_fields=["revoked_at", "updated_at"])
+
+        response = self.client.get(self.sync_url)
+        self.assertEqual(response.status_code, 403)
