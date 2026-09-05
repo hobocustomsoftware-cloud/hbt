@@ -97,8 +97,13 @@ def _resource_self_user_id(resource):
     return None
 
 
-def has_resource_scope(membership, resource):
-    """Return whether an effective role assignment covers a resource."""
+def has_resource_scope(membership, resource, code=None):
+    """Return whether an effective role assignment covers a resource.
+
+    When ``code`` is provided, the scope must come from an assignment whose
+    role explicitly grants that permission. This prevents one role's scope
+    from being reused to authorize a different permission held elsewhere.
+    """
     if _resource_organization_id(resource) != membership.organization_id:
         return False
 
@@ -108,7 +113,10 @@ def has_resource_scope(membership, resource):
     assignments = MembershipRole.objects.filter(
         membership=membership,
         role__permissions__isnull=False,
-    ).filter(
+    )
+    if code is not None:
+        assignments = assignments.filter(role__permissions__code=code)
+    assignments = assignments.filter(
         Q(valid_from__isnull=True) | Q(valid_from__lte=now),
         Q(valid_until__isnull=True) | Q(valid_until__gte=now),
     ).distinct()
@@ -129,7 +137,7 @@ def has_resource_scope(membership, resource):
 
 def require_scoped_permission(membership, code, resource):
     require_permission(membership, code)
-    if not has_resource_scope(membership, resource):
+    if not has_resource_scope(membership, resource, code=code):
         raise PermissionDenied(
             "The actor is not authorized for this operational scope."
         )
@@ -155,7 +163,7 @@ def create_custom_role(*, actor_membership, code, name, description, permissions
     role.permissions.set(permissions)
     record_audit_event(
         actor=actor_membership.user,
-        tenant_id=actor_membership.organization.tenant_id,
+        tenant_id=actor_membership.organization.tenant.id,
         organization_id=actor_membership.organization_id,
         action="authorization.role_created",
         resource_type="role",
