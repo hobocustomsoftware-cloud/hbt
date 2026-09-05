@@ -5,7 +5,12 @@ from django.test import TestCase
 from django.utils import timezone
 
 from apps.identity.models import User
-from apps.locations.models import Branch, CompanyTerminalOperation, SalesCounter
+from apps.locations.models import (
+    Branch,
+    CompanyTerminalOperation,
+    PhysicalTerminal,
+    SalesCounter,
+)
 from apps.tenancy.models import (
     Membership,
     MembershipRole,
@@ -114,16 +119,20 @@ class AuthorizationWindowTests(TestCase):
         self.assertTrue(has_resource_scope(self.membership, branch))
         self.assertFalse(has_resource_scope(self.membership, other_branch))
 
-    def test_counter_scope_covers_counter_and_its_parent_operation(self):
+    def test_counter_scope_covers_only_assigned_counter(self):
         branch = Branch.objects.create(
             organization=self.organization,
             code="main",
             name="Main Branch",
         )
+        terminal = PhysicalTerminal.objects.create(
+            code="main-terminal",
+            name="Main Terminal",
+        )
         operation = CompanyTerminalOperation.objects.create(
             organization=self.organization,
             branch=branch,
-            terminal_id=None,
+            terminal=terminal,
             code="main-terminal",
             display_name="Main Terminal",
         )
