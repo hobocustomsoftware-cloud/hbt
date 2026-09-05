@@ -76,13 +76,40 @@ def require_scoped_permission(membership, code, resource):
         raise PermissionDenied("The actor is not authorized for this operational scope.")
 
 
+def _organization_scope_filter(model_name, organization_id):
+    """Return an ORM filter that always anchors supported resources to the actor's org."""
+    direct = {
+        "branch": "organization_id",
+        "companyterminaloperation": "organization_id",
+        "trip": "organization_id",
+        "ticket": "organization_id",
+        "booking": "organization_id",
+        "seatlock": "organization_id",
+        "boardingrecord": "organization_id",
+        "cashsettlement": "organization_id",
+        "cargoshipment": "organization_id",
+        "paymentrecord": "organization_id",
+    }
+    if model_name in direct:
+        return Q(**{direct[model_name]: organization_id})
+    if model_name == "physicalterminal":
+        return Q(companyterminaloperation__organization_id=organization_id)
+    if model_name == "salescounter":
+        return Q(terminal_operation__organization_id=organization_id)
+    return Q(pk__in=[])
+
+
 def scoped_queryset(membership, queryset, code):
     """Fail-closed queryset restriction for supported operational resources."""
     require_permission(membership, code)
     now = timezone.now()
     assignments = MembershipRole.objects.filter(membership=membership, role__permissions__code=code).filter(Q(valid_from__isnull=True) | Q(valid_from__lte=now), Q(valid_until__isnull=True) | Q(valid_until__gte=now)).distinct()
-    if assignments.filter(scope_type=MembershipRole.ScopeType.COMPANY).exists(): return queryset
     model_name = queryset.model._meta.model_name
+    organization_q = _organization_scope_filter(model_name, membership.organization_id)
+    if not organization_q.children or organization_q.children == [("pk__in", [])]:
+        return queryset.none()
+    if assignments.filter(scope_type=MembershipRole.ScopeType.COMPANY).exists():
+        return queryset.filter(organization_q).distinct()
     scope_q = Q(pk__in=[])
     branch_ids = assignments.filter(scope_type=MembershipRole.ScopeType.BRANCH).values("scope_id")
     terminal_ids = assignments.filter(scope_type=MembershipRole.ScopeType.TERMINAL).values("scope_id")
@@ -111,7 +138,7 @@ def scoped_queryset(membership, queryset, code):
         scope_q = Q(booking__in=booking_scope) | Q(cargo_shipment__in=cargo_scope)
     else:
         return queryset.none()
-    return queryset.filter(scope_q).distinct()
+    return queryset.filter(organization_q & scope_q).distinct()
 
 
 @transaction.atomic
