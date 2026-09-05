@@ -3,7 +3,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("operations", "0001_initial"),
+        ("operations", "0002_printerprofile_printattempt_printtemplate_and_more"),
     ]
 
     operations = [
