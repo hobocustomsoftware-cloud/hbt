@@ -182,3 +182,59 @@ class AuthorizationWindowTests(TestCase):
                 self.permission.code,
                 other_branch,
             )
+
+    def test_scoped_permission_cannot_reuse_scope_from_different_role(self):
+        allowed_branch = Branch.objects.create(
+            organization=self.organization,
+            code="allowed",
+            name="Allowed Branch",
+        )
+        denied_branch = Branch.objects.create(
+            organization=self.organization,
+            code="denied",
+            name="Denied Branch",
+        )
+        other_permission = Permission.objects.create(
+            code="test.other.permission",
+            name="Other test permission",
+        )
+        other_role = Role.objects.create(
+            tenant=self.tenant,
+            code="other-window-role",
+            name="Other Window Role",
+        )
+        other_role.permissions.add(other_permission)
+
+        MembershipRole.objects.create(
+            membership=self.membership,
+            role=self.role,
+            scope_type=MembershipRole.ScopeType.BRANCH,
+            scope_id=allowed_branch.pk,
+        )
+        MembershipRole.objects.create(
+            membership=self.membership,
+            role=other_role,
+            scope_type=MembershipRole.ScopeType.BRANCH,
+            scope_id=denied_branch.pk,
+        )
+
+        self.assertTrue(
+            has_resource_scope(
+                self.membership,
+                allowed_branch,
+                code=self.permission.code,
+            )
+        )
+        self.assertFalse(
+            has_resource_scope(
+                self.membership,
+                denied_branch,
+                code=self.permission.code,
+            )
+        )
+        with self.assertRaises(PermissionDenied):
+            require_scoped_permission(
+                self.membership,
+                self.permission.code,
+                denied_branch,
+            )
