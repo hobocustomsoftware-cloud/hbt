@@ -93,7 +93,7 @@ def _organization_scope_filter(model_name, organization_id):
     if model_name in direct:
         return Q(**{direct[model_name]: organization_id})
     if model_name == "physicalterminal":
-        return Q(companyterminaloperation__organization_id=organization_id)
+        return Q(company_operations__organization_id=organization_id)
     if model_name == "salescounter":
         return Q(terminal_operation__organization_id=organization_id)
     return Q(pk__in=[])
