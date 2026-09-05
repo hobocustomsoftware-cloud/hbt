@@ -27,6 +27,15 @@ from .services import OFFLINE_OPERATION_HANDLERS, apply_sync_operation
 from .services import issue_authorization_snapshot
 
 
+def _has_valid_authorization_snapshot(*, device, organization, membership):
+    return device.authorization_snapshots.filter(
+        organization=organization,
+        membership=membership,
+        revoked_at__isnull=True,
+        expires_at__gt=timezone.now(),
+    ).exists()
+
+
 class MyDeviceListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = DeviceSerializer
@@ -156,12 +165,9 @@ class SyncPushView(APIView):
             user=request.user,
             status=Device.Status.ACTIVE,
         )
-        if not device.authorization_snapshots.filter(
-            organization=organization,
-            membership=membership,
-            revoked_at__isnull=True,
-            expires_at__gt=timezone.now(),
-        ).exists():
+        if not _has_valid_authorization_snapshot(
+            device=device, organization=organization, membership=membership
+        ):
             return Response(
                 {"detail": "A valid offline authorization snapshot is required."},
                 status=403,
@@ -219,6 +225,13 @@ class SyncPullView(APIView):
             user=request.user,
             status=Device.Status.ACTIVE,
         )
+        if not _has_valid_authorization_snapshot(
+            device=device, organization=organization, membership=membership
+        ):
+            return Response(
+                {"detail": "A valid offline authorization snapshot is required."},
+                status=403,
+            )
         try:
             cursor = max(int(request.query_params.get("cursor", 0)), 0)
             limit = min(max(int(request.query_params.get("limit", 100)), 1), 500)
