@@ -28,6 +28,7 @@ from apps.payments.models import PaymentIntent, PaymentRecord, PaymentWebhookEve
 from apps.scheduling.models import Trip
 from apps.subscriptions.models import SubscriptionInvoice
 from apps.scheduling.views import OrganizationSchedulingMixin, require_trip_scope
+from apps.tenancy.services import scoped_queryset
 from apps.ticketing.models import Ticket
 
 from .models import CashSettlement, PrintAttempt, PrintDocument, PrinterProfile, PrintTemplate
@@ -149,13 +150,13 @@ class ReportExportView(OrganizationSchedulingMixin, APIView):
     view_permission = "report.owner"
     @extend_schema(parameters=[OpenApiParameter("report", str, required=True), OpenApiParameter("date", OpenApiTypes.DATE), OpenApiParameter("date_from", OpenApiTypes.DATE), OpenApiParameter("date_to", OpenApiTypes.DATE)], responses={(200, "text/csv"): OpenApiTypes.BINARY}, operation_id="organization_report_export_csv")
     def get(self, request, organization_id, version=None):
-        organization, _ = self.organization_and_membership()
+        organization, membership = self.organization_and_membership()
         query = ReportExportQuerySerializer(data=request.query_params)
         query.is_valid(raise_exception=True)
         data = query.validated_data
         report = data["report"]
         start, end = data["date_from"], data["date_to"]
-        rows = self._rows(organization, report, start, end)
+        rows = self._rows(organization, membership, report, start, end)
         output = StringIO()
         writer = csv.writer(output, lineterminator="\n")
         for row in rows:
@@ -166,26 +167,29 @@ class ReportExportView(OrganizationSchedulingMixin, APIView):
         record_audit_event(actor=request.user, tenant_id=organization.tenant_id, organization_id=organization.id, action="report.exported", resource_type="report", resource_id="", metadata={"report": report, "date_from": start, "date_to": end, "format": "csv"})
         return response
     @staticmethod
-    def _rows(organization, report, start, end):
+    def _rows(organization, membership, report, start, end):
         if report == "trips":
+            trips = scoped_queryset(membership, Trip.objects.filter(organization=organization), "trip.view")
             yield ("trip_number", "service_date", "status", "departure", "arrival")
-            for trip in Trip.objects.filter(organization=organization, service_date__range=(start, end)).order_by("service_date", "planned_departure_at"):
+            for trip in trips.filter(service_date__range=(start, end)).order_by("service_date", "planned_departure_at"):
                 yield (trip.trip_number, trip.service_date, trip.status, trip.planned_departure_at, trip.planned_arrival_at)
             return
         if report == "payments":
+            payments = scoped_queryset(membership, PaymentRecord.objects.filter(organization=organization), "payment.view")
             yield ("payment_number", "confirmed_at", "method", "amount", "currency", "booking_id", "cargo_shipment_id")
-            for payment in PaymentRecord.objects.filter(organization=organization, status=PaymentRecord.Status.CONFIRMED, confirmed_at__date__range=(start, end)).order_by("confirmed_at"):
+            for payment in payments.filter(status=PaymentRecord.Status.CONFIRMED, confirmed_at__date__range=(start, end)).order_by("confirmed_at"):
                 yield (payment.payment_number, payment.confirmed_at, payment.method, payment.amount, payment.currency, payment.booking_id, payment.cargo_shipment_id)
             return
         if report == "cargo":
+            cargo = scoped_queryset(membership, CargoShipment.objects.filter(organization=organization), "cargo.view")
             yield ("shipment_number", "created_at", "status", "pieces", "weight_kg", "total_charge", "currency")
-            for shipment in CargoShipment.objects.filter(organization=organization, created_at__date__range=(start, end)).order_by("created_at"):
+            for shipment in cargo.filter(created_at__date__range=(start, end)).order_by("created_at"):
                 yield (shipment.shipment_number, shipment.created_at, shipment.status, shipment.piece_count, shipment.weight_kg, shipment.total_charge, shipment.currency)
             return
-        trips = Trip.objects.filter(organization=organization, service_date__range=(start, end))
-        tickets = Ticket.objects.filter(organization=organization, trip__service_date__range=(start, end)).exclude(status=Ticket.Status.CANCELLED)
-        cargo = CargoShipment.objects.filter(organization=organization, created_at__date__range=(start, end))
-        payments = PaymentRecord.objects.filter(organization=organization, status=PaymentRecord.Status.CONFIRMED, confirmed_at__date__range=(start, end))
+        trips = scoped_queryset(membership, Trip.objects.filter(organization=organization), "trip.view").filter(service_date__range=(start, end))
+        tickets = scoped_queryset(membership, Ticket.objects.filter(organization=organization), "ticket.view").filter(trip__service_date__range=(start, end)).exclude(status=Ticket.Status.CANCELLED)
+        cargo = scoped_queryset(membership, CargoShipment.objects.filter(organization=organization), "cargo.view").filter(created_at__date__range=(start, end))
+        payments = scoped_queryset(membership, PaymentRecord.objects.filter(organization=organization), "payment.view").filter(status=PaymentRecord.Status.CONFIRMED, confirmed_at__date__range=(start, end))
         yield ("metric", "value")
         yield ("date_from", start); yield ("date_to", end)
         yield ("trip_count", trips.count()); yield ("closed_trip_count", trips.filter(status=Trip.Status.CLOSED).count()); yield ("ticket_count", tickets.count()); yield ("cargo_count", cargo.count()); yield ("confirmed_payment_total", payments.aggregate(total=Sum("amount"))["total"] or 0)
