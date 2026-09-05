@@ -24,10 +24,12 @@ def audit_exception_handler(exc, context):
                 actor=request.user,
                 action="authorization.access_denied",
                 resource_type="api_request",
+                correlation_id=request.headers.get("X-Request-ID") or None,
                 metadata={
                     "method": request.method,
                     "path": request.path,
                     "status_code": response.status_code,
+                    "request_id": request.headers.get("X-Request-ID") or None,
                 },
             )
         except Exception:
