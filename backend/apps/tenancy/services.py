@@ -47,6 +47,94 @@ def require_permission(membership, code):
         raise PermissionDenied(f"Missing required permission: {code}")
 
 
+def _resource_scope_ids(resource):
+    """Return only scope IDs that are explicitly represented by a resource."""
+    from apps.locations.models import (
+        Branch,
+        CompanyTerminalOperation,
+        PhysicalTerminal,
+        SalesCounter,
+    )
+    from apps.scheduling.models import Trip
+
+    if isinstance(resource, Branch):
+        return {"branch": resource.pk}
+    if isinstance(resource, PhysicalTerminal):
+        return {"terminal": resource.pk}
+    if isinstance(resource, CompanyTerminalOperation):
+        return {
+            "branch": resource.branch_id,
+            "terminal": resource.terminal_id,
+        }
+    if isinstance(resource, SalesCounter):
+        return {
+            "branch": resource.terminal_operation.branch_id,
+            "terminal": resource.terminal_operation.terminal_id,
+            "counter": resource.pk,
+        }
+    if isinstance(resource, Trip):
+        return {"assigned_trip": resource.pk}
+    return {}
+
+
+def _resource_organization_id(resource):
+    organization_id = getattr(resource, "organization_id", None)
+    if organization_id is not None:
+        return organization_id
+
+    terminal_operation = getattr(resource, "terminal_operation", None)
+    if terminal_operation is not None:
+        return terminal_operation.organization_id
+
+    return None
+
+
+def _resource_self_user_id(resource):
+    for field in ("user_id", "owner_id", "created_by_id", "managed_by_id"):
+        value = getattr(resource, field, None)
+        if value is not None:
+            return value
+    return None
+
+
+def has_resource_scope(membership, resource):
+    """Return whether an effective role assignment covers a resource."""
+    if _resource_organization_id(resource) != membership.organization_id:
+        return False
+
+    now = timezone.now()
+    resource_scope_ids = _resource_scope_ids(resource)
+    self_user_id = _resource_self_user_id(resource)
+    assignments = MembershipRole.objects.filter(
+        membership=membership,
+        role__permissions__isnull=False,
+    ).filter(
+        Q(valid_from__isnull=True) | Q(valid_from__lte=now),
+        Q(valid_until__isnull=True) | Q(valid_until__gte=now),
+    ).distinct()
+
+    for assignment in assignments:
+        if assignment.scope_type == MembershipRole.ScopeType.COMPANY:
+            return True
+        if assignment.scope_type == MembershipRole.ScopeType.SELF:
+            if self_user_id == membership.user_id:
+                return True
+            continue
+        expected_id = resource_scope_ids.get(assignment.scope_type)
+        if expected_id is not None and assignment.scope_id == expected_id:
+            return True
+
+    return False
+
+
+def require_scoped_permission(membership, code, resource):
+    require_permission(membership, code)
+    if not has_resource_scope(membership, resource):
+        raise PermissionDenied(
+            "The actor is not authorized for this operational scope."
+        )
+
+
 @transaction.atomic
 def create_custom_role(*, actor_membership, code, name, description, permissions):
     require_permission(actor_membership, ROLE_MANAGE)
