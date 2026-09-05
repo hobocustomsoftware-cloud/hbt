@@ -80,7 +80,7 @@ class AuthorizationWindowTests(TestCase):
         other = Branch.objects.create(organization=self.organization, code="other", name="Other Branch")
         MembershipRole.objects.create(membership=self.membership, role=self.role, scope_type=MembershipRole.ScopeType.BRANCH, scope_id=branch.pk)
         queryset = scoped_queryset(self.membership, Branch.objects.filter(organization=self.organization), self.permission.code)
-        self.assertQuerysetEqual(queryset.order_by("pk"), [branch.pk], lambda obj: obj.pk)
+        self.assertQuerySetEqual(queryset.order_by("pk"), [branch.pk], transform=lambda obj: obj.pk)
         self.assertNotIn(other.pk, queryset.values_list("pk", flat=True))
 
     def test_scoped_queryset_company_scope_keeps_organization_data(self):
@@ -93,5 +93,5 @@ class AuthorizationWindowTests(TestCase):
     def test_scoped_queryset_ignores_expired_scope(self):
         branch = Branch.objects.create(organization=self.organization, code="main", name="Main Branch")
         MembershipRole.objects.create(membership=self.membership, role=self.role, scope_type=MembershipRole.ScopeType.BRANCH, scope_id=branch.pk, valid_until=timezone.now() - timedelta(seconds=1))
-        queryset = scoped_queryset(self.membership, Branch.objects.filter(organization=self.organization), self.permission.code)
-        self.assertEqual(queryset.count(), 0)
+        with self.assertRaises(PermissionDenied):
+            scoped_queryset(self.membership, Branch.objects.filter(organization=self.organization), self.permission.code)
