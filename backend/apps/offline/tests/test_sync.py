@@ -1,5 +1,6 @@
 import uuid
 
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
 from rest_framework.test import APITestCase
@@ -118,7 +119,7 @@ class OfflineServiceTests(TestCase):
             payload={"notification_id": str(notification.id)},
         )
         with self.assertRaisesMessage(
-            ValueError,
+            ValidationError,
             "The client operation ID was already used with different content.",
         ):
             apply_sync_operation(
