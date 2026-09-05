@@ -122,7 +122,7 @@ class CargoOwnerReportView(OrganizationSchedulingMixin,APIView):
         if acceptance_channel: queryset=queryset.filter(acceptance_channel=acceptance_channel)
         totals=queryset.aggregate(shipment_count=Count("id"),piece_count=Sum("piece_count"),weight_kg=Sum("weight_kg"),total_charge=Sum("total_charge"))
         confirmed_payment=PaymentRecord.objects.filter(organization=organization,cargo_shipment__in=queryset,status=PaymentRecord.Status.CONFIRMED).aggregate(total=Sum("amount"))["total"] or 0
-        by_channel=list(queryset.values("acceptance_channel").annotate(shipment_count=Count("id"),total_charge=Sum("total_charge")).order_by("acceptance_channel")
+        by_channel=list(queryset.values("acceptance_channel").annotate(shipment_count=Count("id"),total_charge=Sum("total_charge")).order_by("acceptance_channel"))
         total_charge=totals["total_charge"] or 0
         return Response({**{key:value or 0 for key,value in totals.items()},"confirmed_payment":confirmed_payment,"outstanding_amount":max(total_charge-confirmed_payment,0),"by_acceptance_channel":by_channel})
 
