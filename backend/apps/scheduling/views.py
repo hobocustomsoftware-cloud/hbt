@@ -10,7 +10,7 @@ from drf_spectacular.utils import extend_schema
 from apps.audit.services import record_audit_event
 from apps.network.models import RouteStop
 from apps.tenancy.models import MembershipRole
-from apps.tenancy.services import active_membership_for, require_permission
+from apps.tenancy.services import active_membership_for, require_permission, scoped_queryset
 from apps.tenancy.views import organization_for_user
 
 from .models import Schedule, Trip
@@ -102,12 +102,19 @@ class TripListCreateView(OrganizationSchedulingMixin, generics.ListCreateAPIView
     manage_permission = "trip.manage"
 
     def get_queryset(self):
-        organization, _ = self.organization_and_membership()
-        return Trip.objects.filter(organization=organization).select_related("schedule", "route", "vehicle", "driver", "conductor")
+        organization, membership = self.organization_and_membership()
+        return scoped_queryset(
+            membership,
+            Trip.objects.filter(organization=organization).select_related(
+                "schedule", "route", "vehicle", "driver", "conductor"
+            ),
+            self.view_permission,
+        )
 
     def perform_create(self, serializer):
-        organization, _ = self.organization_and_membership()
+        organization, membership = self.organization_and_membership()
         trip = serializer.save(organization=organization)
+        require_trip_scope(membership, trip, self.manage_permission)
         self.audit("trip.created", trip)
 
 
@@ -118,8 +125,8 @@ class TripDetailView(OrganizationSchedulingMixin, generics.RetrieveUpdateAPIView
     manage_permission = "trip.manage"
 
     def get_queryset(self):
-        organization, _ = self.organization_and_membership()
-        return Trip.objects.filter(organization=organization)
+        organization, membership = self.organization_and_membership()
+        return scoped_queryset(membership, Trip.objects.filter(organization=organization), self.view_permission)
 
     def perform_update(self, serializer):
         trip = serializer.instance
@@ -134,11 +141,13 @@ class GenerateTripView(OrganizationSchedulingMixin, APIView):
 
     @extend_schema(request=GenerateTripSerializer, responses={201: TripSerializer}, operation_id="trip_generate_from_schedule")
     def post(self, request, organization_id, schedule_id, version=None):
-        organization, _ = self.organization_and_membership()
+        organization, membership = self.organization_and_membership()
         schedule = get_object_or_404(Schedule, pk=schedule_id, organization=organization)
+        require_permission(membership, self.manage_permission)
         serializer = GenerateTripSerializer(data=request.data, context={"schedule": schedule, "request": request})
         serializer.is_valid(raise_exception=True)
         trip = serializer.save()
+        require_trip_scope(membership, trip, self.manage_permission)
         self.audit("trip.generated", trip)
         return Response(TripSerializer(trip, context={"organization": organization}).data, status=status.HTTP_201_CREATED)
 
