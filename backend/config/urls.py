@@ -7,14 +7,21 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
-from apps.core.views import HealthView, LivenessView, ReadinessView
+from apps.core.views import (
+    HealthView,
+    LivenessView,
+    ReadinessView,
+    UnversionedHealthView,
+    UnversionedLivenessView,
+    UnversionedReadinessView,
+)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     # Unversioned health probes for container orchestration and clients.
-    path("health/", HealthView.as_view()),
-    path("health/live/", LivenessView.as_view()),
-    path("health/ready/", ReadinessView.as_view()),
+    path("health/", UnversionedHealthView.as_view()),
+    path("health/live/", UnversionedLivenessView.as_view()),
+    path("health/ready/", UnversionedReadinessView.as_view()),
     path("api/<str:version>/auth/", include("apps.identity.urls")),
     path("api/<str:version>/", include("apps.tenancy.urls")),
     path("api/<str:version>/", include("apps.locations.urls")),
