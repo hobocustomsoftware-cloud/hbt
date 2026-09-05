@@ -90,6 +90,16 @@ class AuthorizationWindowTests(TestCase):
         queryset = scoped_queryset(self.membership, Branch.objects.filter(organization=self.organization), self.permission.code)
         self.assertEqual(set(queryset.values_list("pk", flat=True)), {first.pk, second.pk})
 
+    def test_scoped_queryset_company_scope_rejects_cross_organization_rows(self):
+        own_branch = Branch.objects.create(organization=self.organization, code="own", name="Own")
+        other_tenant = Tenant.objects.create(name="Other Tenant 2", slug="other-tenant-2", status=Tenant.Status.ACTIVE)
+        other_org = Organization.objects.create(tenant=other_tenant, legal_name="Other Co 2", display_name="Other Co 2", status=Organization.Status.ACTIVE)
+        other_branch = Branch.objects.create(organization=other_org, code="other", name="Other")
+        self._assign()
+        queryset = scoped_queryset(self.membership, Branch.objects.all(), self.permission.code)
+        self.assertEqual(set(queryset.values_list("pk", flat=True)), {own_branch.pk})
+        self.assertNotIn(other_branch.pk, queryset.values_list("pk", flat=True))
+
     def test_scoped_queryset_ignores_expired_scope(self):
         branch = Branch.objects.create(organization=self.organization, code="main", name="Main Branch")
         MembershipRole.objects.create(membership=self.membership, role=self.role, scope_type=MembershipRole.ScopeType.BRANCH, scope_id=branch.pk, valid_until=timezone.now() - timedelta(seconds=1))
